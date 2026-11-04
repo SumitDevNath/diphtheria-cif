@@ -1,12 +1,10 @@
 import { createEmptyAntibioticRow } from "../constants/form.constants";
 import type { AntibioticRow } from "../types/diphtheria.types";
 
-/** Normalize names for case-insensitive duplicate checks. */
 export function normalizeMedicationName(name: string): string {
   return name.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }
 
-/** An active record contains data or a medication selection mode. */
 export function hasAntibioticContent(row: AntibioticRow): boolean {
   return Boolean(
     row.medication.trim() ||
@@ -18,9 +16,8 @@ export function hasAntibioticContent(row: AntibioticRow): boolean {
 }
 
 /**
- * Keep all active rows in their existing order.
- * Preserve one existing trailing blank row when possible.
- * Never use array positions as record IDs.
+ * Preserve active row IDs and maintain exactly
+ * one empty row at the end of the collection.
  */
 export function normalizeAntibioticRows(
   rows: readonly AntibioticRow[],
@@ -45,28 +42,62 @@ export function hasDuplicateMedication(
 }
 
 /**
- * Focus and scroll to the first invalid field.
- * Error keys must match actual DOM element IDs.
+ * Scroll to the first invalid, visible field
+ * according to its actual DOM position.
+ *
+ * Field IDs must match the IDs registered
+ * by the validation rules.
  */
 export function focusFirstInvalidField(errors: Record<string, string>): void {
-  const fieldId = Object.keys(errors)[0];
-
-  if (!fieldId || typeof document === "undefined") {
-    return;
-  }
+  if (typeof document === "undefined") return;
 
   requestAnimationFrame(() => {
-    const element = document.getElementById(fieldId);
+    const elements = Object.keys(errors)
+      .map((id) => document.getElementById(id))
+      .filter(
+        (element): element is HTMLElement =>
+          element instanceof HTMLElement && element.getClientRects().length > 0,
+      );
 
-    if (!(element instanceof HTMLElement)) {
-      return;
-    }
+    if (elements.length === 0) return;
 
-    element.scrollIntoView({
+    elements.sort((first, second) => {
+      const position = first.compareDocumentPosition(second);
+
+      if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+        return -1;
+      }
+
+      if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1;
+      }
+
+      return 0;
+    });
+
+    const firstInvalid = elements[0];
+
+    if (!firstInvalid) return;
+
+    firstInvalid.scrollIntoView({
       behavior: "smooth",
       block: "center",
     });
 
-    element.focus({ preventScroll: true });
+    const inputSelector = [
+      "input:not(:disabled)",
+      "textarea:not(:disabled)",
+      "select:not(:disabled)",
+      "button:not(:disabled)",
+    ].join(", ");
+
+    const focusTarget = firstInvalid.matches(inputSelector)
+      ? firstInvalid
+      : (firstInvalid.querySelector<HTMLElement>(inputSelector) ??
+        firstInvalid);
+
+    focusTarget.focus({
+      preventScroll: true,
+    });
   });
 }
