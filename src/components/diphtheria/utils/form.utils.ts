@@ -15,10 +15,6 @@ export function hasAntibioticContent(row: AntibioticRow): boolean {
   );
 }
 
-/**
- * Preserve active row IDs and maintain exactly
- * one empty row at the end of the collection.
- */
 export function normalizeAntibioticRows(
   rows: readonly AntibioticRow[],
 ): AntibioticRow[] {
@@ -34,34 +30,53 @@ export function normalizeAntibioticRows(
 export function hasDuplicateMedication(
   rows: readonly AntibioticRow[],
 ): boolean {
-  const medications = rows
+  const names = rows
     .map((row) => normalizeMedicationName(row.medication))
     .filter(Boolean);
 
-  return new Set(medications).size !== medications.length;
+  return new Set(names).size !== names.length;
 }
 
+const FOCUSABLE_SELECTOR = [
+  'input:not(:disabled):not([aria-hidden="true"])',
+  "textarea:not(:disabled)",
+  "select:not(:disabled)",
+  '[role="combobox"]:not([aria-disabled="true"])',
+  "button:not(:disabled)",
+].join(", ");
+
 /**
- * Scroll to the first invalid, visible field
- * according to its actual DOM position.
+ * Scroll to the first visible invalid field in DOM order.
  *
- * Field IDs must match the IDs registered
- * by the validation rules.
+ * Compatible with:
+ * - MUI TextField
+ * - MUI Select / Autocomplete
+ * - ToggleButtonGroup
+ * - Clinical checkbox groups
+ * - Dynamic antibiotic rows
  */
 export function focusFirstInvalidField(errors: Record<string, string>): void {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined" || Object.keys(errors).length === 0) {
+    return;
+  }
 
   requestAnimationFrame(() => {
-    const elements = Object.keys(errors)
+    const invalidFields = Object.keys(errors)
       .map((id) => document.getElementById(id))
       .filter(
         (element): element is HTMLElement =>
-          element instanceof HTMLElement && element.getClientRects().length > 0,
+          element instanceof HTMLElement &&
+          element.getClientRects().length > 0 &&
+          getComputedStyle(element).visibility !== "hidden",
       );
 
-    if (elements.length === 0) return;
+    if (invalidFields.length === 0) {
+      return;
+    }
 
-    elements.sort((first, second) => {
+    invalidFields.sort((first, second) => {
+      if (first === second) return 0;
+
       const position = first.compareDocumentPosition(second);
 
       if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
@@ -75,7 +90,7 @@ export function focusFirstInvalidField(errors: Record<string, string>): void {
       return 0;
     });
 
-    const firstInvalid = elements[0];
+    const firstInvalid = invalidFields[0];
 
     if (!firstInvalid) return;
 
@@ -84,16 +99,9 @@ export function focusFirstInvalidField(errors: Record<string, string>): void {
       block: "center",
     });
 
-    const inputSelector = [
-      "input:not(:disabled)",
-      "textarea:not(:disabled)",
-      "select:not(:disabled)",
-      "button:not(:disabled)",
-    ].join(", ");
-
-    const focusTarget = firstInvalid.matches(inputSelector)
+    const focusTarget = firstInvalid.matches(FOCUSABLE_SELECTOR)
       ? firstInvalid
-      : (firstInvalid.querySelector<HTMLElement>(inputSelector) ??
+      : (firstInvalid.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ??
         firstInvalid);
 
     focusTarget.focus({

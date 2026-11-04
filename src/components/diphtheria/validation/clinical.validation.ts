@@ -3,46 +3,49 @@ import {
   CLINICAL_GROUPS,
   CLINICAL_REQUIRED as REQUIRED,
 } from "../constants/clinical.constants";
+
 import type {
   ClinicalSelection,
   DiphtheriaFormData,
 } from "../types/diphtheria.types";
+
 import { validateDateText } from "../utils/date.utils";
 import type { ValidationRule } from "./form.validation";
 
-function validateOptionalText(
-  value: string,
-  required: boolean,
-  label: string,
-): string | null {
-  if (!value) {
-    return required ? `${label} is required.` : null;
+const normalize = (value: string): string =>
+  value.trim().replace(/\s+/g, " ").toLowerCase();
+
+function validateRequiredText(value: string, label: string): string | null {
+  if (!value.trim()) {
+    return `${label} is required.`;
   }
 
-  return value.trim() ? null : "Enter a valid value.";
+  return null;
 }
 
 function validateClinicalSelection(
   selection: ClinicalSelection,
   predefinedOptions: readonly string[],
+  title: string,
 ): string | null {
-  const normalized = (value: string) => value.trim().toLocaleLowerCase();
+  const predefined = new Set(predefinedOptions.map(normalize));
 
-  const predefined = new Set(predefinedOptions.map(normalized));
+  const custom = selection.customOptions.map(normalize);
+  const selected = selection.selected.map(normalize);
+  const draft = normalize(selection.otherDraft);
 
-  const custom = selection.customOptions.map(normalized);
-  const selected = selection.selected.map(normalized);
-
+  // Validate saved custom choices.
   if (
-    custom.some((name) => !name) ||
+    custom.some((name) => name.length === 0) ||
     new Set(custom).size !== custom.length ||
     custom.some((name) => predefined.has(name))
   ) {
     return "Custom options must be unique.";
   }
 
+  // Validate selected choices.
   if (
-    selected.some((name) => !name) ||
+    selected.some((name) => name.length === 0) ||
     new Set(selected).size !== selected.length
   ) {
     return "Remove duplicate selections.";
@@ -54,14 +57,26 @@ function validateClinicalSelection(
     return "Remove invalid selections.";
   }
 
+  // Other requires a saved, selected custom value.
   if (selection.otherSelected) {
-    const hasSelectedCustom = selected.some((name) => custom.includes(name));
+    if (draft) {
+      if (allowed.has(draft)) {
+        return "This Other value already exists.";
+      }
 
-    if (!hasSelectedCustom) {
-      return selection.otherDraft.trim()
-        ? "Add the entered Other value."
-        : "Specify and add the Other value.";
+      return "Add the entered Other value.";
     }
+
+    const selectedCustom = selected.some((name) => custom.includes(name));
+
+    if (!selectedCustom) {
+      return "Specify and add the Other value.";
+    }
+  }
+
+  // Mandatory checkbox-group validation.
+  if (selection.selected.length === 0) {
+    return `Select at least one ${title.toLowerCase()} option.`;
   }
 
   return null;
@@ -98,10 +113,11 @@ export const CLINICAL_VALIDATION_RULES: readonly ValidationRule[] = [
   ),
 
   ...CLINICAL_GROUPS.map(
-    ({ key, options }): ValidationRule => ({
+    ({ key, title, options }): ValidationRule => ({
       id: IDS[key],
+
       validate: ({ clinical }: DiphtheriaFormData) =>
-        validateClinicalSelection(clinical[key], options),
+        validateClinicalSelection(clinical[key], options, title),
     }),
   ),
 
@@ -144,10 +160,14 @@ export const CLINICAL_VALIDATION_RULES: readonly ValidationRule[] = [
   {
     id: IDS.hospitalRecordNumber,
     validate: ({ clinical }) =>
-      validateOptionalText(
-        clinical.hospitalRecordNumber,
-        REQUIRED.hospitalRecordNumber,
-        "Hospital record number",
-      ),
+      REQUIRED.hospitalRecordNumber
+        ? validateRequiredText(
+            clinical.hospitalRecordNumber,
+            "Hospital record number",
+          )
+        : clinical.hospitalRecordNumber.length > 0 &&
+            !clinical.hospitalRecordNumber.trim()
+          ? "Enter a valid record number."
+          : null,
   },
 ];

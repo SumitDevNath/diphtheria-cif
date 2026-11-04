@@ -11,19 +11,10 @@ export const VACCINATION_FIELD_IDS = {
   lastVaccinationDate: "vaccination-lastVaccinationDate",
 } as const satisfies Record<keyof VaccinationHistory, string>;
 
-/**
- * Pending confirmation from the NDSS team.
- *
- * Source and dose count are required when vaccination
- * history is available.
- *
- * Last vaccination date is optional until the official
- * applicability requirements are confirmed.
- */
 export const VACCINATION_REQUIRED = {
   source: true,
   doses: true,
-  lastVaccinationDate: false,
+  lastVaccinationDate: true,
 } as const satisfies Record<
   Exclude<keyof VaccinationHistory, "available">,
   boolean
@@ -35,12 +26,7 @@ export const VACCINATION_SOURCE_OPTIONS: readonly Option<VaccinationSource>[] =
     { value: "history", label: "History" },
   ];
 
-/**
- * Temporary dropdown range for frontend development.
- *
- * This is NOT an official NDSS dose-count limit.
- * Update the options after confirmation.
- */
+/** Provisional options pending official NDSS confirmation. */
 const MAX_SUGGESTED_DOSES = 20;
 
 export const VACCINATION_DOSE_OPTIONS: readonly Option<number>[] = Array.from(

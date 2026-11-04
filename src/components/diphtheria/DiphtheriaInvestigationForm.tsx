@@ -17,6 +17,7 @@ import {
 } from "./context/DiphtheriaFormContext";
 
 import BackgroundInformationSection from "./sections/BackgroundInformationSection";
+
 import type {
   TravelHistoryBridge,
   TravelHistoryRenderer,
@@ -37,20 +38,16 @@ import { BACKGROUND_VALIDATION_RULES } from "./validation/background.validation"
 import { CLINICAL_VALIDATION_RULES } from "./validation/clinical.validation";
 import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
 import { TREATMENT_VALIDATION_RULES } from "./validation/treatment.validation";
+
 import {
   createTravelHistoryValidationRule,
   TRAVEL_HISTORY_FIELD_ID,
   type TravelHistoryValidator,
 } from "./validation/travel.integration.validation";
+
 import { VACCINATION_VALIDATION_RULES } from "./validation/vaccination.validation";
 import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 
-/**
- * Public properties for the NDSS-embeddable form.
- *
- * onSubmit is a frontend integration callback.
- * No backend API is implemented by this component.
- */
 export interface DiphtheriaInvestigationFormProps extends Omit<
   DiphtheriaFormProviderProps,
   "children" | "implementedSections"
@@ -63,18 +60,11 @@ export interface DiphtheriaInvestigationFormProps extends Omit<
   validateTravelHistory?: TravelHistoryValidator;
 
   showJsonPreview?: boolean;
-
   onSubmit?: DiphtheriaSubmitHandler;
 }
 
 const EMPTY_FACILITIES: readonly FacilityOption[] = [];
 
-/**
- * All six requested frontend sections are implemented.
- *
- * Travel History is validated separately through
- * the external-module integration rule.
- */
 const IMPLEMENTED_SECTIONS: readonly FormSectionKey[] = SECTION_DEFINITIONS.map(
   (section) => section.id,
 );
@@ -84,13 +74,6 @@ interface TravelHistorySlotProps {
   renderTravelHistory?: TravelHistoryRenderer;
 }
 
-/**
- * Displays the external Travel History module or its
- * integration placeholder with validation feedback.
- *
- * The module's data structure remains unknown to
- * this form and is not recreated here.
- */
 function TravelHistorySlot({
   bridge,
   renderTravelHistory,
@@ -103,10 +86,17 @@ function TravelHistorySlot({
     <Box
       id={TRAVEL_HISTORY_FIELD_ID}
       tabIndex={-1}
+      role="group"
+      aria-label="Travel History"
+      aria-invalid={Boolean(error)}
+      aria-describedby={error ? `${TRAVEL_HISTORY_FIELD_ID}-helper` : undefined}
       sx={{
         minWidth: 0,
         width: "100%",
-        outline: "none",
+        borderRadius: "6px",
+        outline: error ? "1px solid" : "none",
+        outlineColor: "error.main",
+        outlineOffset: "2px",
       }}
     >
       {renderTravelHistory ? (
@@ -131,12 +121,6 @@ function TravelHistorySlot({
   );
 }
 
-/**
- * Reusable Diphtheria Case Investigation Form.
- *
- * Independent of the surrounding NDSS page layout,
- * backend, authentication, and API implementations.
- */
 export default function DiphtheriaInvestigationForm({
   value,
   defaultValue,
@@ -154,13 +138,6 @@ export default function DiphtheriaInvestigationForm({
 
   showJsonPreview = false,
 }: DiphtheriaInvestigationFormProps): ReactNode {
-  /**
-   * Validate the external module only when
-   * Background Question 1 is Yes.
-   *
-   * A renderer without a validator does not
-   * count as a fully validated integration.
-   */
   const travelHistoryRule = useMemo(
     () =>
       createTravelHistoryValidationRule({
@@ -170,10 +147,6 @@ export default function DiphtheriaInvestigationForm({
     [renderTravelHistory, validateTravelHistory],
   );
 
-  /**
-   * Combine rules from all six implemented sections.
-   * Keep custom integration rules configurable.
-   */
   const rules = useMemo(
     () => [
       ...IDENTIFICATION_VALIDATION_RULES,
@@ -188,12 +161,6 @@ export default function DiphtheriaInvestigationForm({
     [travelHistoryRule, validationRules],
   );
 
-  /**
-   * A stable adapter connects the external module
-   * to the existing Background Information section.
-   *
-   * This does not invent any Travel History fields.
-   */
   const renderTravelSlot = useCallback(
     (bridge: TravelHistoryBridge): ReactNode => (
       <TravelHistorySlot
@@ -220,7 +187,6 @@ export default function DiphtheriaInvestigationForm({
           minWidth: 0,
         }}
       >
-        {/* SIX FORM SECTIONS */}
         <Stack
           component="section"
           aria-label="Diphtheria Case Investigation Form"
@@ -268,10 +234,8 @@ export default function DiphtheriaInvestigationForm({
           ))}
         </Stack>
 
-        {/* FRONTEND-ONLY SUBMISSION */}
         <FormSubmit validationRules={rules} onSubmit={onSubmit} />
 
-        {/* DEVELOPMENT-ONLY JSON VIEWER */}
         {showJsonPreview && <FormJsonPreview />}
       </Stack>
     </DiphtheriaFormProvider>

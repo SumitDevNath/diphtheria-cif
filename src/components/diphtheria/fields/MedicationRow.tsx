@@ -21,11 +21,11 @@ import {
   antibioticFieldId,
 } from "../constants/treatment.constants";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
-import DateField from "./DateField";
 import {
   hasAntibioticContent,
   normalizeMedicationName,
 } from "../utils/form.utils";
+import DateField from "./DateField";
 
 import type {
   AdministrationRoute,
@@ -55,7 +55,6 @@ const inputSx = {
   },
 } as const;
 
-/** Display field labels in compact/mobile table layouts. */
 function MobileCellLabel({ children }: { children: string }) {
   return (
     <Typography
@@ -93,6 +92,12 @@ export default function MedicationRow({
   const startId = antibioticFieldId(row.id, "startDate");
   const endId = antibioticFieldId(row.id, "endDate");
 
+  const customMode = row.medicationOrigin === "custom";
+
+  // In custom mode, the medication error targets
+  // the actual custom text input, not the dropdown.
+  const selectionId = customMode ? `${medicationId}-choice` : medicationId;
+
   const medicationError = fieldError(medicationId);
   const routeError = fieldError(routeId);
 
@@ -100,11 +105,11 @@ export default function MedicationRow({
     updateAntibioticRow(row.id, patch);
   };
 
-  // Prevent medications already selected in other rows
-  // from appearing in this row's dropdown.
   const selectedElsewhere = new Set(
     rows
-      .filter((other) => other.id !== row.id && other.medication.trim() !== "")
+      .filter(
+        (other) => other.id !== row.id && other.medication.trim().length > 0,
+      )
       .map((other) => normalizeMedicationName(other.medication)),
   );
 
@@ -116,12 +121,11 @@ export default function MedicationRow({
       !selectedElsewhere.has(normalizeMedicationName(medication)),
   );
 
-  const selectedMedication =
-    row.medicationOrigin === "custom"
-      ? OTHER_MEDICATION
-      : row.medicationOrigin === "predefined" && row.medication
-        ? row.medication
-        : null;
+  const selectedMedication = customMode
+    ? OTHER_MEDICATION
+    : row.medicationOrigin === "predefined"
+      ? row.medication || null
+      : null;
 
   const canRemove = !readOnly && hasAntibioticContent(row);
 
@@ -135,22 +139,22 @@ export default function MedicationRow({
           </MobileCellLabel>
 
           <Autocomplete<string, false, false, false>
-            id={medicationId}
+            id={selectionId}
             options={availableMedications}
             value={selectedMedication}
             readOnly={readOnly}
             size="small"
             fullWidth
             onChange={(_, selected) => {
-              if (selected === null) {
-                updateRow({
-                  medication: "",
-                  medicationOrigin: null,
-                });
-              } else if (selected === OTHER_MEDICATION) {
+              if (selected === OTHER_MEDICATION) {
                 updateRow({
                   medication: "",
                   medicationOrigin: "custom",
+                });
+              } else if (selected === null) {
+                updateRow({
+                  medication: "",
+                  medicationOrigin: null,
                 });
               } else {
                 updateRow({
@@ -165,7 +169,7 @@ export default function MedicationRow({
             renderInput={(params) => (
               <TextField
                 {...params}
-                id={medicationId}
+                id={selectionId}
                 size="small"
                 placeholder="Medications"
                 error={Boolean(medicationError)}
@@ -174,7 +178,7 @@ export default function MedicationRow({
                   ...params.slotProps,
                   htmlInput: {
                     ...params.slotProps.htmlInput,
-                    "aria-label": `Medication for record ${index + 1}`,
+                    "aria-label": `Medication selection for record ${index + 1}`,
                     "aria-describedby": `${medicationId}-helper`,
                   },
                 }}
@@ -183,9 +187,9 @@ export default function MedicationRow({
             )}
           />
 
-          {row.medicationOrigin === "custom" && (
+          {customMode && (
             <TextField
-              id={`${medicationId}-custom`}
+              id={medicationId}
               value={row.medication}
               onChange={(event) =>
                 updateRow({
@@ -284,7 +288,6 @@ export default function MedicationRow({
 
       {/* START DATE */}
       <TableCell>
-        {/* inputSx already contains minWidth: 0 */}
         <Box sx={inputSx}>
           <MobileCellLabel>Start date</MobileCellLabel>
 
@@ -322,7 +325,7 @@ export default function MedicationRow({
         </Box>
       </TableCell>
 
-      {/* ROW REMOVAL */}
+      {/* REMOVE RECORD */}
       <TableCell
         sx={{
           textAlign: "center",

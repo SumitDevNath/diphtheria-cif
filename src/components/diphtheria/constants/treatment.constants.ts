@@ -14,10 +14,7 @@ export const ANTIBIOTIC_MEDICATION_OPTIONS: readonly string[] =
   MEDICATION_OPTIONS;
 
 export const ANTIBIOTIC_ROUTE_OPTIONS: readonly Option<AdministrationRoute>[] =
-  ADMINISTRATION_ROUTE_OPTIONS.map((option) => ({
-    value: option.value as AdministrationRoute,
-    label: option.label,
-  }));
+  ADMINISTRATION_ROUTE_OPTIONS;
 
 export const TREATMENT_FIELD_IDS = {
   antibioticsAdministered: "treatment-antibioticsAdministered",
@@ -37,14 +34,10 @@ export function antibioticFieldId(
   return `treatment-${rowId}-${field}`;
 }
 
-/**
- * Provisional validation requirements.
- * Confirm applicability with the NDSS clinical team.
- */
 export const TREATMENT_REQUIRED = {
   antibioticsAdministered: true,
   medication: true,
   administrationRoute: true,
   startDate: true,
-  endDate: false,
+  endDate: true,
 } as const;

@@ -25,7 +25,28 @@ interface CheckboxGroupProps {
   readOnly?: boolean;
 }
 
-const normalize = (value: string) => value.trim().toLocaleLowerCase();
+const normalize = (text: string): string =>
+  text.trim().replace(/\s+/g, " ").toLowerCase();
+
+const checkboxSx = {
+  p: 0.4,
+  mr: 0.35,
+  color: "#BDD0E8",
+  "&.Mui-checked": { color: "#2563EB" },
+} as const;
+
+const optionSx = {
+  m: 0,
+  minHeight: 25,
+  alignItems: "flex-start",
+  "& .MuiFormControlLabel-label": {
+    pt: 0.35,
+    color: "#29486C",
+    fontSize: "0.72rem",
+    lineHeight: 1.45,
+    overflowWrap: "anywhere",
+  },
+} as const;
 
 export default function CheckboxGroup({
   id,
@@ -40,27 +61,31 @@ export default function CheckboxGroup({
 }: CheckboxGroupProps) {
   const [customError, setCustomError] = useState<string | null>(null);
 
-  const toggle = (option: string, checked: boolean) => {
-    onChange({
-      ...value,
-      selected: checked
-        ? Array.from(new Set([...value.selected, option]))
-        : value.selected.filter((item) => item !== option),
-    });
-
+  const commit = (next: ClinicalSelection) => {
+    onChange(next);
+    setCustomError(null);
     onBlur?.();
   };
 
-  const addCustom = () => {
-    const next = value.otherDraft.trim();
+  const toggle = (option: string, checked: boolean) => {
+    commit({
+      ...value,
+      selected: checked
+        ? [...new Set([...value.selected, option])]
+        : value.selected.filter((item) => item !== option),
+    });
+  };
 
-    if (!next) {
+  const addCustom = () => {
+    const name = value.otherDraft.trim().replace(/\s+/g, " ");
+
+    if (!name) {
       setCustomError("Enter an Other value.");
       return;
     }
 
     const exists = [...options, ...value.customOptions].some(
-      (item) => normalize(item) === normalize(next),
+      (item) => normalize(item) === normalize(name),
     );
 
     if (exists) {
@@ -68,26 +93,23 @@ export default function CheckboxGroup({
       return;
     }
 
-    onChange({
+    commit({
       ...value,
-      customOptions: [...value.customOptions, next],
-      selected: [...value.selected, next],
+      customOptions: [...value.customOptions, name],
+      selected: [...new Set([...value.selected, name])],
       otherDraft: "",
     });
-
-    setCustomError(null);
-    onBlur?.();
   };
 
   const removeCustom = (option: string) => {
-    onChange({
+    commit({
       ...value,
       customOptions: value.customOptions.filter((item) => item !== option),
       selected: value.selected.filter((item) => item !== option),
     });
-
-    onBlur?.();
   };
+
+  const message = customError ?? error;
 
   return (
     <Box
@@ -95,7 +117,8 @@ export default function CheckboxGroup({
       role="group"
       tabIndex={-1}
       aria-labelledby={`${id}-heading`}
-      aria-describedby={error || customError ? `${id}-helper` : undefined}
+      aria-invalid={Boolean(message)}
+      aria-describedby={message ? `${id}-helper` : undefined}
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -104,12 +127,11 @@ export default function CheckboxGroup({
         height: "100%",
         minWidth: 0,
         p: 1.3,
-        border: `1px solid ${error ? "#D32F2F" : "#E2EAF5"}`,
+        border: `1px solid ${message ? "#D32F2F" : "#E2EAF5"}`,
         borderRadius: "8px",
         bgcolor: "#F6F9FE",
       }}
     >
-      {/* NUMBERED GROUP HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -155,13 +177,7 @@ export default function CheckboxGroup({
         </Typography>
       </Box>
 
-      {/* PREDEFINED OPTIONS */}
-      <FormGroup
-        sx={{
-          minWidth: 0,
-          gap: 0.2,
-        }}
-      >
+      <FormGroup sx={{ minWidth: 0, gap: 0.2 }}>
         {options.map((option) => (
           <FormControlLabel
             key={option}
@@ -171,33 +187,14 @@ export default function CheckboxGroup({
                 size="small"
                 checked={value.selected.includes(option)}
                 onChange={(event) => toggle(option, event.target.checked)}
-                sx={{
-                  p: 0.4,
-                  mr: 0.35,
-                  color: "#BDD0E8",
-                  "&.Mui-checked": {
-                    color: "#2563EB",
-                  },
-                }}
+                sx={checkboxSx}
               />
             }
             label={option}
-            sx={{
-              m: 0,
-              minHeight: 25,
-              alignItems: "flex-start",
-              "& .MuiFormControlLabel-label": {
-                pt: 0.35,
-                color: "#29486C",
-                fontSize: "0.72rem",
-                lineHeight: 1.45,
-                overflowWrap: "anywhere",
-              },
-            }}
+            sx={optionSx}
           />
         ))}
 
-        {/* OTHER, SPECIFY */}
         <FormControlLabel
           disabled={readOnly}
           control={
@@ -207,42 +204,21 @@ export default function CheckboxGroup({
               onChange={(event) => {
                 const checked = event.target.checked;
 
-                onChange({
+                commit({
                   ...value,
                   otherSelected: checked,
                   otherDraft: checked ? value.otherDraft : "",
                 });
-
-                setCustomError(null);
-                onBlur?.();
               }}
-              sx={{
-                p: 0.4,
-                mr: 0.35,
-                color: "#BDD0E8",
-                "&.Mui-checked": {
-                  color: "#2563EB",
-                },
-              }}
+              sx={checkboxSx}
             />
           }
           label="Other, specify"
-          sx={{
-            m: 0,
-            minHeight: 25,
-            alignItems: "flex-start",
-            "& .MuiFormControlLabel-label": {
-              pt: 0.35,
-              color: "#29486C",
-              fontSize: "0.72rem",
-              lineHeight: 1.45,
-            },
-          }}
+          sx={optionSx}
         />
       </FormGroup>
 
-      {/* CUSTOM VALUE INPUT */}
-      {value.otherSelected && !readOnly && (
+      {value.otherSelected && (!readOnly || Boolean(value.otherDraft)) && (
         <Stack
           direction={{ xs: "column", sm: "row" }}
           sx={{
@@ -261,17 +237,24 @@ export default function CheckboxGroup({
                 ...value,
                 otherDraft: event.target.value,
               });
-
               setCustomError(null);
             }}
+            onBlur={onBlur}
             onKeyDown={(event) => {
-              if (event.key === "Enter") {
+              if (event.key === "Enter" && !readOnly) {
                 event.preventDefault();
                 addCustom();
               }
             }}
             placeholder="Specify other (if any)"
-            aria-label={`Specify other ${title.toLowerCase()}`}
+            error={Boolean(message)}
+            slotProps={{
+              htmlInput: {
+                readOnly,
+                "aria-label": `Specify other ${title.toLowerCase()}`,
+                "aria-describedby": message ? `${id}-helper` : undefined,
+              },
+            }}
             sx={{
               minWidth: 0,
               "& .MuiOutlinedInput-root": {
@@ -284,25 +267,26 @@ export default function CheckboxGroup({
             }}
           />
 
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={addCustom}
-            disabled={!value.otherDraft.trim()}
-            sx={{
-              px: 1,
-              minWidth: 45,
-              flexShrink: 0,
-              textTransform: "none",
-              fontSize: "0.72rem",
-            }}
-          >
-            Add
-          </Button>
+          {!readOnly && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={addCustom}
+              disabled={!value.otherDraft.trim()}
+              sx={{
+                px: 1,
+                minWidth: 45,
+                flexShrink: 0,
+                textTransform: "none",
+                fontSize: "0.72rem",
+              }}
+            >
+              Add
+            </Button>
+          )}
         </Stack>
       )}
 
-      {/* SAVED CUSTOM OPTIONS */}
       {value.customOptions.length > 0 && (
         <Stack
           direction="row"
@@ -342,7 +326,7 @@ export default function CheckboxGroup({
         </Stack>
       )}
 
-      <FieldError id={id} message={customError ?? error} />
+      <FieldError id={id} message={message} />
     </Box>
   );
 }

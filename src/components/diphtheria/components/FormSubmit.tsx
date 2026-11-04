@@ -1,15 +1,13 @@
 import { useMemo, useRef, useState } from "react";
 import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 
+import { SECTION_DEFINITIONS } from "../constants/form.constants";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
-
 import type { DiphtheriaFormData } from "../types/diphtheria.types";
-
 import {
   evaluateForm,
   type ValidationRule,
 } from "../validation/form.validation";
-
 import { TRAVEL_HISTORY_FIELD_ID } from "../validation/travel.integration.validation";
 
 export type DiphtheriaSubmitHandler = (
@@ -21,6 +19,11 @@ interface FormSubmitProps {
   onSubmit?: DiphtheriaSubmitHandler;
 }
 
+interface SubmissionFailure {
+  data: DiphtheriaFormData;
+  message: string;
+}
+
 export default function FormSubmit({
   validationRules,
   onSubmit,
@@ -29,21 +32,13 @@ export default function FormSubmit({
     useDiphtheriaForm();
 
   const [submitting, setSubmitting] = useState(false);
-
   const [validatedSnapshot, setValidatedSnapshot] =
     useState<DiphtheriaFormData | null>(null);
-
-  const [callbackError, setCallbackError] = useState<string | null>(null);
+  const [callbackFailure, setCallbackFailure] =
+    useState<SubmissionFailure | null>(null);
 
   const busyRef = useRef(false);
 
-  /**
-   * Validation automatically recalculates whenever
-   * form data changes.
-   *
-   * The button becomes green only when the entire
-   * applicable form passes its configured rules.
-   */
   const result = useMemo(
     () => evaluateForm(data, validationRules, implementedSections),
     [data, validationRules, implementedSections],
@@ -54,16 +49,24 @@ export default function FormSubmit({
 
   const showErrors = submitAttempted && !isFormValid;
 
+  const activeFailure =
+    callbackFailure?.data === data ? callbackFailure.message : null;
+
   const showSuccess =
-    validatedSnapshot === data && isFormValid && !callbackError;
+    validatedSnapshot === data && isFormValid && !activeFailure;
 
   const travelError = result.errors[TRAVEL_HISTORY_FIELD_ID];
 
-  const handleSubmit = async () => {
+  const incompleteSectionNames = result.incompleteSections.map(
+    (id) =>
+      SECTION_DEFINITIONS.find((section) => section.id === id)?.title ?? id,
+  );
+
+  const handleSubmit = async (): Promise<void> => {
     if (readOnly || busyRef.current) return;
 
-    setCallbackError(null);
     setValidatedSnapshot(null);
+    setCallbackFailure(null);
 
     const validation = validateNow();
 
@@ -71,23 +74,22 @@ export default function FormSubmit({
       return;
     }
 
+    const submittedData = data;
+
     busyRef.current = true;
     setSubmitting(true);
 
     try {
-      /**
-       * The form itself does not call an API.
-       *
-       * NDSS can supply an external callback later.
-       * The current demo does not supply one.
-       */
       if (onSubmit) {
-        await onSubmit(data);
+        await onSubmit(submittedData);
       }
 
-      setValidatedSnapshot(data);
+      setValidatedSnapshot(submittedData);
     } catch {
-      setCallbackError("The submission callback could not complete.");
+      setCallbackFailure({
+        data: submittedData,
+        message: "The submission callback could not complete.",
+      });
     } finally {
       busyRef.current = false;
       setSubmitting(false);
@@ -105,7 +107,6 @@ export default function FormSubmit({
       }}
     >
       <Stack spacing={1.5}>
-        {/* VALIDATION FEEDBACK */}
         {showErrors && (
           <Alert
             severity="error"
@@ -132,7 +133,7 @@ export default function FormSubmit({
               <Typography variant="body2" sx={{ mt: 0.35 }}>
                 {errorCount}{" "}
                 {errorCount === 1 ? "field requires" : "fields require"}{" "}
-                attention. The first invalid field has been located.
+                attention.
               </Typography>
             )}
 
@@ -142,26 +143,24 @@ export default function FormSubmit({
               </Typography>
             )}
 
-            {result.incompleteSections.length > 0 && (
+            {incompleteSectionNames.length > 0 && (
               <Typography variant="body2" sx={{ mt: 0.5 }}>
-                Incomplete sections: {result.incompleteSections.join(", ")}.
+                Incomplete sections: {incompleteSectionNames.join(", ")}.
               </Typography>
             )}
           </Alert>
         )}
 
-        {/* EXTERNAL CALLBACK FAILURE */}
-        {callbackError && (
+        {activeFailure && (
           <Alert
             severity="error"
             variant="outlined"
             sx={{ borderRadius: "8px" }}
           >
-            {callbackError}
+            {activeFailure}
           </Alert>
         )}
 
-        {/* FRONTEND VALIDATION SUCCESS */}
         {showSuccess && (
           <Alert
             severity="success"
@@ -174,7 +173,6 @@ export default function FormSubmit({
           </Alert>
         )}
 
-        {/* SUBMIT BUTTON */}
         <Box
           sx={{
             display: "flex",
@@ -195,7 +193,7 @@ export default function FormSubmit({
             variant="contained"
             size="medium"
             loading={submitting}
-            disabled={readOnly}
+            disabled={readOnly || submitting}
             onClick={() => {
               void handleSubmit();
             }}

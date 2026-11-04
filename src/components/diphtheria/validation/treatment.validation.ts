@@ -21,7 +21,11 @@ function validateMedication(row: AntibioticRow): string | null {
   const medication = row.medication.trim();
 
   if (!medication) {
-    return REQUIRED.medication ? "Select or enter a medication." : null;
+    if (!REQUIRED.medication) return null;
+
+    return row.medicationOrigin === "custom"
+      ? "Enter the custom medication name."
+      : "Select a medication.";
   }
 
   if (medication === OTHER_MEDICATION) {
@@ -34,9 +38,16 @@ function validateMedication(row: AntibioticRow): string | null {
 
   if (
     row.medicationOrigin === "predefined" &&
-    !PREDEFINED_MEDICATIONS.some((option) => option === medication)
+    !PREDEFINED_MEDICATIONS.includes(medication)
   ) {
     return "Select a valid medication.";
+  }
+
+  if (
+    row.medicationOrigin !== "predefined" &&
+    row.medicationOrigin !== "custom"
+  ) {
+    return "Select a valid medication type.";
   }
 
   return null;
@@ -49,7 +60,16 @@ function validateAntibioticRows(
 
   const activeRows = rows.filter(hasAntibioticContent);
 
-  if (activeRows.length === 0) {
+  /**
+   * If there are no active rows, validate the first
+   * empty row so its four controls receive errors.
+   *
+   * If active rows exist, ignore the automatically
+   * maintained trailing empty row.
+   */
+  const rowsToValidate = activeRows.length > 0 ? activeRows : rows.slice(0, 1);
+
+  if (rowsToValidate.length === 0) {
     errors[IDS.antibioticRows] = "Add at least one antibiotic therapy record.";
 
     return errors;
@@ -57,7 +77,7 @@ function validateAntibioticRows(
 
   const firstMedicationByName = new Map<string, string>();
 
-  for (const row of activeRows) {
+  for (const row of rowsToValidate) {
     const medicationId = antibioticFieldId(row.id, "medication");
 
     const routeId = antibioticFieldId(row.id, "administrationRoute");
@@ -74,12 +94,12 @@ function validateAntibioticRows(
     } else {
       const normalized = normalizeMedicationName(row.medication);
 
-      const earlierRow = firstMedicationByName.get(normalized);
+      const previousField = firstMedicationByName.get(normalized);
 
-      if (earlierRow) {
+      if (previousField) {
         errors[medicationId] = "This medication is already recorded.";
 
-        errors[earlierRow] = "This medication is entered more than once.";
+        errors[previousField] = "This medication is entered more than once.";
       } else {
         firstMedicationByName.set(normalized, medicationId);
       }
@@ -120,7 +140,7 @@ function validateAntibioticRows(
       }
     }
 
-    // CHRONOLOGICAL VALIDATION
+    // DATE ORDER
     const startIso = dmyToIso(row.startDate);
     const endIso = dmyToIso(row.endDate);
 

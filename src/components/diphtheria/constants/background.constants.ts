@@ -14,28 +14,19 @@ export const BACKGROUND_FIELD_IDS = {
   healthcareFacility: "background-healthcareFacility",
 } as const satisfies Record<BackgroundFieldKey, string>;
 
-/**
- * Mandatory status is not specified in the Figma.
- * Update these flags after NDSS confirms requirements.
- *
- * Dependent fields are validated only while visible.
- */
 export const BACKGROUND_REQUIRED: Record<BackgroundFieldKey, boolean> = {
-  contactKnownCase: false,
-  contactDetails: false,
-  householdSize: false,
-  caregiversTreated: false,
-  similarIllnessInFamily: false,
-  similarIllnessDetails: false,
-  healthcareVisit: false,
-  healthcareVisitDate: false,
-  healthcareFacility: false,
+  contactKnownCase: true,
+  contactDetails: true,
+  householdSize: true,
+  caregiversTreated: true,
+  similarIllnessInFamily: true,
+  similarIllnessDetails: true,
+  healthcareVisit: true,
+  healthcareVisitDate: true,
+  healthcareFacility: true,
 };
 
-/**
- * Dropdown suggestions, not an authoritative maximum.
- * Free-text entry supports larger values.
- */
+/** Development suggestions only; not an upper limit. */
 export const CAREGIVER_COUNT_OPTIONS: readonly string[] = Array.from(
   { length: 11 },
   (_, index) => String(index),

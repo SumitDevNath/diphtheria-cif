@@ -88,19 +88,12 @@ export const CLINICAL_FIELD_IDS = {
   hospitalRecordNumber: "clinical-hospitalRecordNumber",
 } as const satisfies Record<keyof ClinicalDetails, string>;
 
-/**
- * The Figma does not mark these fields mandatory.
- * Update after confirmation from NDSS/clinical stakeholders.
- *
- * Clinical checkbox groups are not required to contain
- * a selection unless the official form rules specify it.
- */
 export const CLINICAL_REQUIRED = {
-  onsetDate: false,
-  hospital: false,
-  visitDate: false,
-  admissionDate: false,
-  hospitalRecordNumber: false,
+  onsetDate: true,
+  hospital: true,
+  visitDate: true,
+  admissionDate: true,
+  hospitalRecordNumber: true,
 } as const satisfies Record<
   Exclude<keyof ClinicalDetails, ClinicalGroupKey>,
   boolean

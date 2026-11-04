@@ -19,7 +19,9 @@ export function FieldLabel({
         fontWeight: 600,
         fontSize: "0.75rem",
         lineHeight: 1.45,
-        "&.Mui-focused": { color: "#16355F" },
+        "&.Mui-focused": {
+          color: "#16355F",
+        },
       }}
     >
       {children}
@@ -35,18 +37,21 @@ export function FieldError({
   id: string;
   message?: string | null;
 }) {
+  const hasError = Boolean(message);
+
   return (
     <FormHelperText
       id={`${id}-helper`}
-      error={Boolean(message)}
+      error={hasError}
+      role={hasError ? "alert" : undefined}
       sx={{
         mx: 0,
         mt: 0.35,
         minHeight: 17,
         fontSize: "0.69rem",
+        lineHeight: 1.35,
         whiteSpace: "normal",
         overflowWrap: "anywhere",
-        lineHeight: 1.35,
       }}
     >
       {message || " "}

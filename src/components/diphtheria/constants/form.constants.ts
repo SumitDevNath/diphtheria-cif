@@ -1,4 +1,5 @@
 import type {
+  AdministrationRoute,
   AntibioticRow,
   CaseIdentification,
   ClinicalSelection,
@@ -28,7 +29,7 @@ export const SECTION_DEFINITIONS: ReadonlyArray<{
   { id: "treatment", title: "Treatment Information", number: "05", phase: 8 },
 ];
 
-/** Temporary suggestions only; confirm the official occupation list with NDSS. */
+/** Temporary suggestions pending NDSS confirmation. */
 export const OCCUPATION_SUGGESTIONS: readonly string[] = [
   "Student",
   "Homemaker",
@@ -38,7 +39,6 @@ export const OCCUPATION_SUGGESTIONS: readonly string[] = [
   "Unemployed",
 ];
 
-/** Exact displayed choices from the provided Figma reference. */
 export const ETHNICITY_OPTIONS: readonly Option<Ethnicity>[] = [
   { value: "bengali", label: "Bengali" },
   { value: "tribal-national", label: "Tribal & national" },
@@ -50,14 +50,17 @@ export const PREGNANCY_STATUS_OPTIONS: readonly Option<PregnancyStatus>[] = [
   { value: "non-pregnant", label: "Non-Pregnant" },
 ];
 
-/** The Figma does not mark mandatory fields; set these after NDSS confirmation. */
+/**
+ * All currently displayed Case Identification fields
+ * are mandatory for this development stage.
+ */
 export const IDENTIFICATION_REQUIRED = {
-  motherName: false,
-  occupation: false,
-  ethnicity: false,
-  pregnancyStatus: false,
-  examinationDate: false,
-  schoolName: false,
+  motherName: true,
+  occupation: true,
+  ethnicity: true,
+  pregnancyStatus: true,
+  examinationDate: true,
+  schoolName: true,
 } as const satisfies Record<keyof CaseIdentification, boolean>;
 
 export const IDENTIFICATION_FIELD_IDS = {
@@ -86,11 +89,12 @@ export const MEDICATION_OPTIONS = [
   "Other — specify",
 ] as const;
 
-export const ADMINISTRATION_ROUTE_OPTIONS: readonly Option[] = [
-  { value: "oral", label: "Oral" },
-  { value: "iv", label: "IV (Intravenous)" },
-  { value: "im", label: "IM (Intramuscular)" },
-];
+export const ADMINISTRATION_ROUTE_OPTIONS: readonly Option<AdministrationRoute>[] =
+  [
+    { value: "oral", label: "Oral" },
+    { value: "iv", label: "IV (Intravenous)" },
+    { value: "im", label: "IM (Intramuscular)" },
+  ];
 
 export function createEmptyAntibioticRow(): AntibioticRow {
   return {
