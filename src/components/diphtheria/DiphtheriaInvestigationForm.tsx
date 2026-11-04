@@ -7,42 +7,38 @@ import {
   type DiphtheriaFormProviderProps,
 } from "./context/DiphtheriaFormContext";
 import CaseIdentificationSection from "./sections/CaseIdentificationSection";
-import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
+import VitalsSection from "./sections/VitalsSection";
 import type { FormSectionKey } from "./types/diphtheria.types";
+import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
+import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 
 export type DiphtheriaInvestigationFormProps = Omit<
   DiphtheriaFormProviderProps,
   "children"
 >;
 
-/** Reusable NDSS form entry; only identification is implemented in Phase 3. */
+const IMPLEMENTED_SECTIONS: readonly FormSectionKey[] = [
+  "identification",
+  "vitals",
+];
+
 export default function DiphtheriaInvestigationForm(
   props: DiphtheriaInvestigationFormProps,
 ) {
   const rules = useMemo(
     () => [
       ...IDENTIFICATION_VALIDATION_RULES,
+      ...VITALS_VALIDATION_RULES,
       ...(props.validationRules ?? []),
     ],
     [props.validationRules],
-  );
-
-  const implementedSections = useMemo<readonly FormSectionKey[]>(
-    () =>
-      Array.from(
-        new Set<FormSectionKey>([
-          "identification",
-          ...(props.implementedSections ?? []),
-        ]),
-      ),
-    [props.implementedSections],
   );
 
   return (
     <DiphtheriaFormProvider
       {...props}
       validationRules={rules}
-      implementedSections={implementedSections}
+      implementedSections={IMPLEMENTED_SECTIONS}
     >
       <Stack
         component="section"
@@ -57,6 +53,8 @@ export default function DiphtheriaInvestigationForm(
           <SectionHeader key={id} id={id} title={title} number={number}>
             {id === "identification" ? (
               <CaseIdentificationSection />
+            ) : id === "vitals" ? (
+              <VitalsSection />
             ) : (
               <Box
                 sx={{
