@@ -1,25 +1,36 @@
 import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { Box, Stack, Typography } from "@mui/material";
+
 import SectionHeader from "./components/SectionHeader";
 import FormJsonPreview from "./components/FormJsonPreview";
+
 import { SECTION_DEFINITIONS } from "./constants/form.constants";
+
 import {
   DiphtheriaFormProvider,
   type DiphtheriaFormProviderProps,
 } from "./context/DiphtheriaFormContext";
+
 import BackgroundInformationSection from "./sections/BackgroundInformationSection";
+
 import type { TravelHistoryRenderer } from "./sections/BackgroundInformationSection";
+
 import CaseIdentificationSection from "./sections/CaseIdentificationSection";
 import ClinicalDetailsSection from "./sections/ClinicalDetailsSection";
+import TreatmentInformationSection from "./sections/TreatmentInformationSection";
 import VitalsSection from "./sections/VitalsSection";
+
 import VaccinationHistorySection, {
   VaccinationAvailabilitySwitch,
 } from "./sections/VaccinationHistorySection";
+
 import type { FacilityOption, FormSectionKey } from "./types/diphtheria.types";
+
 import { BACKGROUND_VALIDATION_RULES } from "./validation/background.validation";
 import { CLINICAL_VALIDATION_RULES } from "./validation/clinical.validation";
 import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
+import { TREATMENT_VALIDATION_RULES } from "./validation/treatment.validation";
 import { VACCINATION_VALIDATION_RULES } from "./validation/vaccination.validation";
 import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 
@@ -55,16 +66,27 @@ export default function DiphtheriaInvestigationForm({
       ...BACKGROUND_VALIDATION_RULES,
       ...VACCINATION_VALIDATION_RULES,
       ...CLINICAL_VALIDATION_RULES,
+      ...TREATMENT_VALIDATION_RULES,
       ...(validationRules ?? []),
     ],
     [validationRules],
   );
 
+  /**
+   * Travel History is externally developed.
+   *
+   * Background Information remains incomplete for
+   * final validation until its renderer is integrated.
+   */
   const implementedSections = useMemo<readonly FormSectionKey[]>(
-    () =>
-      renderTravelHistory
-        ? ["identification", "vitals", "background", "vaccination", "clinical"]
-        : ["identification", "vitals", "vaccination", "clinical"],
+    () => [
+      "identification",
+      "vitals",
+      "vaccination",
+      "clinical",
+      "treatment",
+      ...(renderTravelHistory ? (["background"] as const) : []),
+    ],
     [renderTravelHistory],
   );
 
@@ -93,7 +115,7 @@ export default function DiphtheriaInvestigationForm({
             minWidth: 0,
           }}
         >
-          {SECTION_DEFINITIONS.map(({ id, title, number, phase }) => (
+          {SECTION_DEFINITIONS.map(({ id, title, number }) => (
             <SectionHeader
               key={id}
               id={id}
@@ -124,22 +146,12 @@ export default function DiphtheriaInvestigationForm({
                   facilityLoading={facilityLoading}
                   facilityLoadError={facilityLoadError}
                 />
+              ) : id === "treatment" ? (
+                <TreatmentInformationSection />
               ) : (
-                <Box
-                  sx={{
-                    px: 2,
-                    py: 2.5,
-                    minHeight: 72,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#6E8097",
-                      fontSize: "0.8rem",
-                    }}
-                  >
-                    Section fields will be implemented in Phase {phase}.
+                <Box sx={{ px: 2, py: 2.5 }}>
+                  <Typography variant="body2">
+                    Section not implemented.
                   </Typography>
                 </Box>
               )}
