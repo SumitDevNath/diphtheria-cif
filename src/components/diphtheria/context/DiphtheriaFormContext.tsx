@@ -103,21 +103,28 @@ function applyFormAction(
     case "background": {
       const next = { ...data.background, ...action.patch };
 
-      if (
-        "contactKnownCase" in action.patch &&
-        next.contactKnownCase !== "yes"
-      ) {
+      // Question 1 controls the remaining Background Information.
+      if (next.contactKnownCase !== "yes") {
         next.contactDetails = "";
+        next.travelHistory = null;
+        next.householdSize = "";
+        next.caregiversTreated = null;
+        next.similarIllnessInFamily = null;
+        next.similarIllnessDetails = "";
+        next.healthcareVisit = null;
+        next.healthcareVisitDate = "";
+        next.healthcareFacility = null;
+
+        return { ...data, background: next };
       }
 
-      if (
-        "similarIllnessInFamily" in action.patch &&
-        next.similarIllnessInFamily !== "yes"
-      ) {
+      // Question 4 dependent details.
+      if (next.similarIllnessInFamily !== "yes") {
         next.similarIllnessDetails = "";
       }
 
-      if ("healthcareVisit" in action.patch && next.healthcareVisit !== "yes") {
+      // Question 5 dependent date and facility.
+      if (next.healthcareVisit !== "yes") {
         next.healthcareVisitDate = "";
         next.healthcareFacility = null;
       }
@@ -187,8 +194,6 @@ export function DiphtheriaFormProvider({
     [data, validationRules],
   );
 
-  // A ref keeps sequential event updates safe without making callbacks
-  // depend on the entire form.
   const latest = useRef({
     data,
     onChange,
@@ -282,13 +287,19 @@ export function DiphtheriaFormProvider({
 
   const setTravelHistory = useCallback(
     (payload: unknown) => {
-      mutate((previous) => ({
-        ...previous,
-        background: {
-          ...previous.background,
-          travelHistory: payload,
-        },
-      }));
+      mutate((previous) => {
+        if (previous.background.contactKnownCase !== "yes") {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          background: {
+            ...previous.background,
+            travelHistory: payload,
+          },
+        };
+      });
     },
     [mutate],
   );

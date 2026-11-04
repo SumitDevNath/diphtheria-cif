@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { DiphtheriaInvestigationForm } from "../components/diphtheria";
+import { MOCK_FACILITIES } from "../components/diphtheria/constants/mockFacilities";
 
 export default function DiphtheriaDemoPage() {
   return (
@@ -28,18 +29,30 @@ export default function DiphtheriaDemoPage() {
           sx={{
             color: "#0A2850",
             fontWeight: 700,
-            fontSize: { xs: "1.15rem", sm: "1.4rem" },
+            fontSize: {
+              xs: "1.15rem",
+              sm: "1.4rem",
+            },
           }}
         >
           Diphtheria Case Investigation Form
         </Typography>
 
-        <Typography variant="body2" sx={{ color: "#6E8097", mt: 0.5 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "#6E8097",
+            mt: 0.5,
+          }}
+        >
           NDSS frontend development preview
         </Typography>
 
         <Box sx={{ mt: 2 }}>
-          <DiphtheriaInvestigationForm />
+          <DiphtheriaInvestigationForm
+            facilityOptions={MOCK_FACILITIES}
+            showJsonPreview
+          />
         </Box>
       </Box>
     </Box>
