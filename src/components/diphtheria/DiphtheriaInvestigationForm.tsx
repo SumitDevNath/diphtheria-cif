@@ -11,15 +11,17 @@ import {
 import BackgroundInformationSection from "./sections/BackgroundInformationSection";
 import type { TravelHistoryRenderer } from "./sections/BackgroundInformationSection";
 import CaseIdentificationSection from "./sections/CaseIdentificationSection";
+import ClinicalDetailsSection from "./sections/ClinicalDetailsSection";
 import VitalsSection from "./sections/VitalsSection";
 import VaccinationHistorySection, {
   VaccinationAvailabilitySwitch,
 } from "./sections/VaccinationHistorySection";
 import type { FacilityOption, FormSectionKey } from "./types/diphtheria.types";
-import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
-import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 import { BACKGROUND_VALIDATION_RULES } from "./validation/background.validation";
+import { CLINICAL_VALIDATION_RULES } from "./validation/clinical.validation";
+import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
 import { VACCINATION_VALIDATION_RULES } from "./validation/vaccination.validation";
+import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 
 export interface DiphtheriaInvestigationFormProps extends Omit<
   DiphtheriaFormProviderProps,
@@ -34,13 +36,6 @@ export interface DiphtheriaInvestigationFormProps extends Omit<
 
 const EMPTY_FACILITIES: readonly FacilityOption[] = [];
 
-/**
- * Reusable NDSS form entry.
- *
- * Phases 3–6 implemented.
- * Clinical Details and Treatment Information remain
- * placeholders until their respective phases.
- */
 export default function DiphtheriaInvestigationForm({
   value,
   defaultValue,
@@ -59,6 +54,7 @@ export default function DiphtheriaInvestigationForm({
       ...VITALS_VALIDATION_RULES,
       ...BACKGROUND_VALIDATION_RULES,
       ...VACCINATION_VALIDATION_RULES,
+      ...CLINICAL_VALIDATION_RULES,
       ...(validationRules ?? []),
     ],
     [validationRules],
@@ -67,8 +63,8 @@ export default function DiphtheriaInvestigationForm({
   const implementedSections = useMemo<readonly FormSectionKey[]>(
     () =>
       renderTravelHistory
-        ? ["identification", "vitals", "background", "vaccination"]
-        : ["identification", "vitals", "vaccination"],
+        ? ["identification", "vitals", "background", "vaccination", "clinical"]
+        : ["identification", "vitals", "vaccination", "clinical"],
     [renderTravelHistory],
   );
 
@@ -122,6 +118,12 @@ export default function DiphtheriaInvestigationForm({
                 />
               ) : id === "vaccination" ? (
                 <VaccinationHistorySection />
+              ) : id === "clinical" ? (
+                <ClinicalDetailsSection
+                  facilityOptions={facilityOptions}
+                  facilityLoading={facilityLoading}
+                  facilityLoadError={facilityLoadError}
+                />
               ) : (
                 <Box
                   sx={{

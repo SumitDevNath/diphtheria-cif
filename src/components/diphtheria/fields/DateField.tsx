@@ -13,12 +13,13 @@ import {
 export interface DateFieldProps extends DateConstraints {
   id: string;
   label: string;
-  value: string; // DD-MM-YYYY; incomplete entry is allowed
+  value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: string;
   required?: boolean;
   readOnly?: boolean;
+  hideLabel?: boolean;
 }
 
 export default function DateField({
@@ -30,6 +31,7 @@ export default function DateField({
   error,
   required = false,
   readOnly = false,
+  hideLabel = false,
   noFuture = false,
   minDate,
   maxDate,
@@ -78,9 +80,11 @@ export default function DateField({
 
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
-      <FieldLabel id={id} required={required}>
-        {label}
-      </FieldLabel>
+      {!hideLabel && (
+        <FieldLabel id={id} required={required}>
+          {label}
+        </FieldLabel>
+      )}
 
       <Box sx={{ position: "relative" }}>
         <TextField
@@ -100,6 +104,7 @@ export default function DateField({
               inputMode: "numeric",
               maxLength: 10,
               readOnly,
+              "aria-label": hideLabel ? label : undefined,
               "aria-describedby": `${id}-helper`,
             },
             input: {
@@ -121,7 +126,7 @@ export default function DateField({
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              bgcolor: "#FFF",
+              bgcolor: "#FFFFFF",
               borderRadius: "6px",
             },
           }}
