@@ -5,12 +5,16 @@ export type AVPU = "alert" | "voice" | "pain" | "unresponsive";
 export type VaccinationSource = "card" | "history";
 export type AdministrationRoute = "oral" | "iv" | "im";
 
+export type Ethnicity = "bengali" | "tribal-national" | "non-national";
+
+export type PregnancyStatus = "pregnant" | "non-pregnant";
+
 export interface Option<T extends string | number = string> {
   value: T;
   label: string;
 }
 
-/** The eventual DGHS provider should supply stable IDs and display names. */
+/** The DGHS provider should supply stable IDs and display names. */
 export interface FacilityOption {
   id: string;
   name: string;
@@ -19,8 +23,8 @@ export interface FacilityOption {
 export interface CaseIdentification {
   motherName: string;
   occupation: string | null;
-  ethnicity: string | null;
-  pregnancyStatus: string | null;
+  ethnicity: Ethnicity | null;
+  pregnancyStatus: PregnancyStatus | null;
   examinationDate: string;
   schoolName: string;
 }
@@ -45,7 +49,7 @@ export interface BackgroundInformation<TTravel = unknown> {
   healthcareVisit: YesNo;
   healthcareVisitDate: string;
   healthcareFacility: FacilityOption | null;
-  /** Opaque until the other developer provides the Travel History contract. */
+  /** Opaque until the external Travel History contract is available. */
   travelHistory: TTravel | null;
 }
 
@@ -95,7 +99,7 @@ export interface TreatmentInformation {
   antibioticRows: AntibioticRow[];
 }
 
-/** Each date string uses DD-MM-YYYY. Empty or in-progress strings are allowed. */
+/** Date strings use DD-MM-YYYY; incomplete entries are permitted in state. */
 export interface DiphtheriaFormData<TTravel = unknown> {
   identification: CaseIdentification;
   vitals: Vitals;

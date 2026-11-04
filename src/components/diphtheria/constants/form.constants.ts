@@ -1,9 +1,12 @@
 import type {
   AntibioticRow,
+  CaseIdentification,
   ClinicalSelection,
   DiphtheriaFormData,
+  Ethnicity,
   FormSectionKey,
   Option,
+  PregnancyStatus,
 } from "../types/diphtheria.types";
 
 export const SECTION_DEFINITIONS: ReadonlyArray<{
@@ -24,6 +27,47 @@ export const SECTION_DEFINITIONS: ReadonlyArray<{
   { id: "clinical", title: "Clinical Details", number: "04", phase: 7 },
   { id: "treatment", title: "Treatment Information", number: "05", phase: 8 },
 ];
+
+/** Temporary suggestions only; confirm the official occupation list with NDSS. */
+export const OCCUPATION_SUGGESTIONS: readonly string[] = [
+  "Student",
+  "Homemaker",
+  "Farmer",
+  "Business",
+  "Service",
+  "Unemployed",
+];
+
+/** Exact displayed choices from the provided Figma reference. */
+export const ETHNICITY_OPTIONS: readonly Option<Ethnicity>[] = [
+  { value: "bengali", label: "Bengali" },
+  { value: "tribal-national", label: "Tribal & national" },
+  { value: "non-national", label: "Non-National" },
+];
+
+export const PREGNANCY_STATUS_OPTIONS: readonly Option<PregnancyStatus>[] = [
+  { value: "pregnant", label: "Pregnant" },
+  { value: "non-pregnant", label: "Non-Pregnant" },
+];
+
+/** The Figma does not mark mandatory fields; set these after NDSS confirmation. */
+export const IDENTIFICATION_REQUIRED = {
+  motherName: false,
+  occupation: false,
+  ethnicity: false,
+  pregnancyStatus: false,
+  examinationDate: false,
+  schoolName: false,
+} as const satisfies Record<keyof CaseIdentification, boolean>;
+
+export const IDENTIFICATION_FIELD_IDS = {
+  motherName: "identification-motherName",
+  occupation: "identification-occupation",
+  ethnicity: "identification-ethnicity",
+  pregnancyStatus: "identification-pregnancyStatus",
+  examinationDate: "identification-examinationDate",
+  schoolName: "identification-schoolName",
+} as const satisfies Record<keyof CaseIdentification, string>;
 
 export const YES_NO_OPTIONS: readonly Option<"yes" | "no">[] = [
   { value: "yes", label: "Yes" },
