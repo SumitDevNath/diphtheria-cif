@@ -12,10 +12,14 @@ import BackgroundInformationSection from "./sections/BackgroundInformationSectio
 import type { TravelHistoryRenderer } from "./sections/BackgroundInformationSection";
 import CaseIdentificationSection from "./sections/CaseIdentificationSection";
 import VitalsSection from "./sections/VitalsSection";
+import VaccinationHistorySection, {
+  VaccinationAvailabilitySwitch,
+} from "./sections/VaccinationHistorySection";
 import type { FacilityOption, FormSectionKey } from "./types/diphtheria.types";
 import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
 import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 import { BACKGROUND_VALIDATION_RULES } from "./validation/background.validation";
+import { VACCINATION_VALIDATION_RULES } from "./validation/vaccination.validation";
 
 export interface DiphtheriaInvestigationFormProps extends Omit<
   DiphtheriaFormProviderProps,
@@ -31,11 +35,11 @@ export interface DiphtheriaInvestigationFormProps extends Omit<
 const EMPTY_FACILITIES: readonly FacilityOption[] = [];
 
 /**
- * Reusable, NDSS-embeddable frontend form.
+ * Reusable NDSS form entry.
  *
- * No API calls are made in this component.
- * The parent supplies facility data and optional
- * externally developed Travel History rendering.
+ * Phases 3–6 implemented.
+ * Clinical Details and Treatment Information remain
+ * placeholders until their respective phases.
  */
 export default function DiphtheriaInvestigationForm({
   value,
@@ -54,6 +58,7 @@ export default function DiphtheriaInvestigationForm({
       ...IDENTIFICATION_VALIDATION_RULES,
       ...VITALS_VALIDATION_RULES,
       ...BACKGROUND_VALIDATION_RULES,
+      ...VACCINATION_VALIDATION_RULES,
       ...(validationRules ?? []),
     ],
     [validationRules],
@@ -62,8 +67,8 @@ export default function DiphtheriaInvestigationForm({
   const implementedSections = useMemo<readonly FormSectionKey[]>(
     () =>
       renderTravelHistory
-        ? ["identification", "vitals", "background"]
-        : ["identification", "vitals"],
+        ? ["identification", "vitals", "background", "vaccination"]
+        : ["identification", "vitals", "vaccination"],
     [renderTravelHistory],
   );
 
@@ -93,7 +98,17 @@ export default function DiphtheriaInvestigationForm({
           }}
         >
           {SECTION_DEFINITIONS.map(({ id, title, number, phase }) => (
-            <SectionHeader key={id} id={id} title={title} number={number}>
+            <SectionHeader
+              key={id}
+              id={id}
+              title={title}
+              number={number}
+              rightContent={
+                id === "vaccination" ? (
+                  <VaccinationAvailabilitySwitch />
+                ) : undefined
+              }
+            >
               {id === "identification" ? (
                 <CaseIdentificationSection />
               ) : id === "vitals" ? (
@@ -105,6 +120,8 @@ export default function DiphtheriaInvestigationForm({
                   facilityLoadError={facilityLoadError}
                   renderTravelHistory={renderTravelHistory}
                 />
+              ) : id === "vaccination" ? (
+                <VaccinationHistorySection />
               ) : (
                 <Box
                   sx={{
