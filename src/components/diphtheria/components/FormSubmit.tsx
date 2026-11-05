@@ -200,6 +200,8 @@ export default function FormSubmit({
             sx={{
               minWidth: 155,
               minHeight: 42,
+              marginTop: 0.5,
+              marginBottom: 2.5,
               px: 3,
               py: 1.1,
               borderRadius: "7px",

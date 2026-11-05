@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Box,
   Button,
@@ -32,7 +31,9 @@ const checkboxSx = {
   p: 0.4,
   mr: 0.35,
   color: "#BDD0E8",
-  "&.Mui-checked": { color: "#2563EB" },
+  "&.Mui-checked": {
+    color: "#2563EB",
+  },
 } as const;
 
 const optionSx = {
@@ -59,11 +60,8 @@ export default function CheckboxGroup({
   error,
   readOnly = false,
 }: CheckboxGroupProps) {
-  const [customError, setCustomError] = useState<string | null>(null);
-
   const commit = (next: ClinicalSelection) => {
     onChange(next);
-    setCustomError(null);
     onBlur?.();
   };
 
@@ -79,19 +77,15 @@ export default function CheckboxGroup({
   const addCustom = () => {
     const name = value.otherDraft.trim().replace(/\s+/g, " ");
 
-    if (!name) {
-      setCustomError("Enter an Other value.");
-      return;
-    }
+    if (!name) return;
 
     const exists = [...options, ...value.customOptions].some(
       (item) => normalize(item) === normalize(name),
     );
 
-    if (exists) {
-      setCustomError("This option already exists.");
-      return;
-    }
+    // Duplicate or unfinished entries are reported
+    // by Context validation after Submit.
+    if (exists) return;
 
     commit({
       ...value,
@@ -109,7 +103,8 @@ export default function CheckboxGroup({
     });
   };
 
-  const message = customError ?? error;
+  // The parent provides errors only after Submit Form.
+  const message = error;
 
   return (
     <Box
@@ -132,6 +127,7 @@ export default function CheckboxGroup({
         bgcolor: "#F6F9FE",
       }}
     >
+      {/* GROUP HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -177,6 +173,7 @@ export default function CheckboxGroup({
         </Typography>
       </Box>
 
+      {/* PREDEFINED OPTIONS */}
       <FormGroup sx={{ minWidth: 0, gap: 0.2 }}>
         {options.map((option) => (
           <FormControlLabel
@@ -195,6 +192,7 @@ export default function CheckboxGroup({
           />
         ))}
 
+        {/* OTHER OPTION */}
         <FormControlLabel
           disabled={readOnly}
           control={
@@ -218,6 +216,7 @@ export default function CheckboxGroup({
         />
       </FormGroup>
 
+      {/* CUSTOM OPTION INPUT */}
       {value.otherSelected && (!readOnly || Boolean(value.otherDraft)) && (
         <Stack
           direction={{ xs: "column", sm: "row" }}
@@ -232,13 +231,12 @@ export default function CheckboxGroup({
             size="small"
             fullWidth
             value={value.otherDraft}
-            onChange={(event) => {
+            onChange={(event) =>
               onChange({
                 ...value,
                 otherDraft: event.target.value,
-              });
-              setCustomError(null);
-            }}
+              })
+            }
             onBlur={onBlur}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !readOnly) {
@@ -287,6 +285,7 @@ export default function CheckboxGroup({
         </Stack>
       )}
 
+      {/* SAVED CUSTOM OPTIONS */}
       {value.customOptions.length > 0 && (
         <Stack
           direction="row"

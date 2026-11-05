@@ -29,7 +29,8 @@ export default function FacilityAutocomplete({
   required = false,
   readOnly = false,
 }: FacilityAutocompleteProps) {
-  const message = error ?? loadError;
+  // Only show form-validation errors supplied by Context.
+  const message = error;
 
   return (
     <Box sx={{ minWidth: 0, width: "100%" }}>
@@ -46,8 +47,11 @@ export default function FacilityAutocomplete({
         onBlur={onBlur}
         getOptionLabel={(option) => option.name}
         isOptionEqualToValue={(option, chosen) => option.id === chosen.id}
+        loadingText="Loading facilities..."
         noOptionsText={
-          loadError ? "Facilities unavailable" : "No facilities found"
+          loadError
+            ? "Facilities are temporarily unavailable"
+            : "No facilities found"
         }
         renderInput={(params) => (
           <TextField
@@ -67,7 +71,7 @@ export default function FacilityAutocomplete({
         )}
         sx={{
           "& .MuiOutlinedInput-root": {
-            bgcolor: "#FFF",
+            bgcolor: "#FFFFFF",
             borderRadius: "6px",
           },
         }}

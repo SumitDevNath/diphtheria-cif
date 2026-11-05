@@ -91,19 +91,25 @@ function applyFormAction(
     case "identification":
       return {
         ...data,
-        identification: { ...data.identification, ...action.patch },
+        identification: {
+          ...data.identification,
+          ...action.patch,
+        },
       };
 
     case "vitals":
       return {
         ...data,
-        vitals: { ...data.vitals, ...action.patch },
+        vitals: {
+          ...data.vitals,
+          ...action.patch,
+        },
       };
 
     case "background": {
       const next = { ...data.background, ...action.patch };
 
-      // Question 1 controls the remaining Background Information.
+      // Q1 controls Travel History and Questions 2–5.
       if (next.contactKnownCase !== "yes") {
         next.contactDetails = "";
         next.travelHistory = null;
@@ -118,12 +124,10 @@ function applyFormAction(
         return { ...data, background: next };
       }
 
-      // Question 4 dependent details.
       if (next.similarIllnessInFamily !== "yes") {
         next.similarIllnessDetails = "";
       }
 
-      // Question 5 dependent date and facility.
       if (next.healthcareVisit !== "yes") {
         next.healthcareVisitDate = "";
         next.healthcareFacility = null;
@@ -151,7 +155,10 @@ function applyFormAction(
     case "clinical":
       return {
         ...data,
-        clinical: { ...data.clinical, ...action.patch },
+        clinical: {
+          ...data.clinical,
+          ...action.patch,
+        },
       };
 
     case "treatment": {
@@ -189,6 +196,8 @@ export function DiphtheriaFormProvider({
 
   const data = value ?? internalData;
 
+  // Validation calculations can run while editing, but
+  // their messages are not displayed until Submit.
   const errors = useMemo(
     () => runValidation(data, validationRules),
     [data, validationRules],
@@ -219,7 +228,11 @@ export function DiphtheriaFormProvider({
       if (current.readOnly) return;
 
       const next = apply(current.data);
-      latest.current = { ...current, data: next };
+
+      latest.current = {
+        ...current,
+        data: next,
+      };
 
       if (!current.controlled) {
         setInternalData(next);
@@ -304,6 +317,8 @@ export function DiphtheriaFormProvider({
     [mutate],
   );
 
+  // Retained for compatibility with the existing fields.
+  // A touched field no longer triggers validation styling.
   const markTouched = useCallback((id: string) => {
     setTouched((previous) =>
       previous[id] ? previous : { ...previous, [id]: true },
@@ -319,6 +334,7 @@ export function DiphtheriaFormProvider({
 
     const result = evaluateForm(current, rules, implemented);
 
+    // Enable field-level error display only after Submit.
     setSubmitAttempted(true);
 
     if (!result.valid) {
@@ -328,9 +344,15 @@ export function DiphtheriaFormProvider({
     return result;
   }, []);
 
+  /**
+   * Only show a validation message after Submit Form.
+   * Once Submit has been attempted, errors update
+   * automatically whenever the corresponding value changes.
+   */
   const fieldError = useCallback(
-    (id: string) => (submitAttempted || touched[id] ? errors[id] : undefined),
-    [errors, submitAttempted, touched],
+    (id: string): string | undefined =>
+      submitAttempted ? errors[id] : undefined,
+    [errors, submitAttempted],
   );
 
   const values = useMemo<FormValueContextType>(

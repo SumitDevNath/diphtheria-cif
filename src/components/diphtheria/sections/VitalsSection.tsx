@@ -96,7 +96,7 @@ export default function VitalsSection() {
         gridTemplateColumns: {
           xs: "minmax(0, 1fr)",
           sm: "repeat(2, minmax(0, 1fr))",
-          md: "repeat(3, minmax(0, 1fr))",
+          md: "repeat(4, minmax(0, 1fr))",
         },
         columnGap: { xs: 1.5, sm: 2, md: 2.5 },
         rowGap: { xs: 1, sm: 1.5 },

@@ -320,20 +320,6 @@ export default function TreatmentInformationSection() {
               list but is not an antibiotic.
             </Typography>
           )}
-
-          <Typography
-            variant="caption"
-            sx={{
-              display: "block",
-              mt: 1,
-              color: "#718096",
-              fontSize: "0.71rem",
-              lineHeight: 1.5,
-            }}
-          >
-            A new empty row appears automatically when you begin entering
-            another medication record.
-          </Typography>
         </Box>
       )}
     </Box>

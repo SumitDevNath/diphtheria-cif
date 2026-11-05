@@ -51,7 +51,7 @@ export default function SectionHeader({
             minWidth: 0,
           }}
         >
-          {number && (
+          {/* {number && (
             <Box
               sx={{
                 display: "grid",
@@ -68,14 +68,14 @@ export default function SectionHeader({
             >
               {number}
             </Box>
-          )}
+          )} */}
 
           <Typography
             id={`${id}-heading`}
             component="h2"
             sx={{
               color: "#0A2850",
-              fontSize: "0.9rem",
+              fontSize: "1.25rem",
               fontWeight: 700,
               lineHeight: 1.5,
             }}

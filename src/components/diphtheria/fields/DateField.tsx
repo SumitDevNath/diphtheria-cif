@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { Box, IconButton, InputAdornment, TextField } from "@mui/material";
 import { FieldError, FieldLabel } from "../components/FieldParts";
@@ -6,7 +6,6 @@ import {
   dmyToIso,
   isoToDmy,
   todayIsoLocal,
-  validateDateText,
   type DateConstraints,
 } from "../utils/date.utils";
 
@@ -37,19 +36,11 @@ export default function DateField({
   maxDate,
 }: DateFieldProps) {
   const pickerRef = useRef<HTMLInputElement>(null);
-  const [touched, setTouched] = useState(false);
 
-  const localError = touched
-    ? required && !value.trim()
-      ? "This field is required."
-      : validateDateText(value, {
-          noFuture,
-          minDate,
-          maxDate,
-        })
-    : null;
+  // Validation errors are supplied by Context
+  // only after Submit Form has been clicked.
+  const message = error;
 
-  const message = error ?? localError;
   const nativeValue = dmyToIso(value) ?? "";
 
   const min = minDate ? (dmyToIso(minDate) ?? undefined) : undefined;
@@ -91,10 +82,7 @@ export default function DateField({
           id={id}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          onBlur={() => {
-            setTouched(true);
-            onBlur?.();
-          }}
+          onBlur={onBlur}
           error={Boolean(message)}
           placeholder="DD-MM-YYYY"
           size="small"
@@ -144,7 +132,6 @@ export default function DateField({
           disabled={readOnly}
           onChange={(event) => {
             onChange(isoToDmy(event.target.value));
-            setTouched(true);
             onBlur?.();
           }}
           sx={{

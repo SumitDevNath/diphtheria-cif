@@ -243,7 +243,7 @@ function DetailsField({
           fontSize: "0.73rem",
         }}
       >
-        If yes, details
+        Provide Details
       </Typography>
 
       <Box sx={{ flex: 1, ...inputSx }}>
@@ -613,7 +613,7 @@ export default function BackgroundInformationSection({
               >
                 <DateField
                   id={IDS.healthcareVisitDate}
-                  label="If yes, date"
+                  label="Date"
                   value={background.healthcareVisitDate}
                   onChange={(healthcareVisitDate) =>
                     updateBackground({
