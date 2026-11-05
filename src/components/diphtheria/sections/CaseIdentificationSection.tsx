@@ -22,7 +22,7 @@ const inputCellSx = {
     borderColor: "#C9D9EF",
   },
   "& .MuiInputBase-input": {
-    fontSize: "0.78rem",
+    fontSize: "0.85rem",
   },
 };
 
@@ -184,7 +184,7 @@ export default function CaseIdentificationSection() {
         <Box sx={inputCellSx}>
           <SelectField
             id={IDS.pregnancyStatus}
-            label="If Female of Child Bearing Age, Pregnancy Status"
+            label="Pregnancy Status (Female ≥18 years)"
             value={values.pregnancyStatus}
             options={PREGNANCY_STATUS_OPTIONS}
             onChange={(pregnancyStatus) =>

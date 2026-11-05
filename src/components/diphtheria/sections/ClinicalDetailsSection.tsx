@@ -170,7 +170,7 @@ export default function ClinicalDetailsSection({
           sx={{
             mb: 1.25,
             color: "#1755C9",
-            fontSize: "0.7rem",
+            fontSize: "1rem",
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.015em",

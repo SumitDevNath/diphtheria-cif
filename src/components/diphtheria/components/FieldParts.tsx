@@ -1,4 +1,8 @@
 import { FormHelperText, FormLabel } from "@mui/material";
+import {
+  CIF_FONT_SIZES,
+  CIF_FONT_WEIGHTS,
+} from "../constants/typography.constants";
 
 export function FieldLabel({
   id,
@@ -16,8 +20,8 @@ export function FieldLabel({
         display: "block",
         mb: 0.6,
         color: "#16355F",
-        fontWeight: 600,
-        fontSize: "0.75rem",
+        fontWeight: CIF_FONT_WEIGHTS.fieldLabel,
+        fontSize: CIF_FONT_SIZES.fieldLabel,
         lineHeight: 1.45,
         "&.Mui-focused": {
           color: "#16355F",
@@ -25,7 +29,7 @@ export function FieldLabel({
       }}
     >
       {children}
-      {required ? " *" : ""}
+      {/* {required ? " *" : ""} */}
     </FormLabel>
   );
 }

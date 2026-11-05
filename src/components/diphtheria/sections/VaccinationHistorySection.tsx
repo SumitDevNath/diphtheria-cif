@@ -6,6 +6,10 @@ import {
   VACCINATION_REQUIRED as REQUIRED,
   VACCINATION_SOURCE_OPTIONS,
 } from "../constants/vaccination.constants";
+import {
+  CIF_FONT_SIZES,
+  CIF_FONT_WEIGHTS,
+} from "../constants/typography.constants";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 import DateField from "../fields/DateField";
 import SelectField from "../fields/SelectField";
@@ -13,6 +17,12 @@ import SelectField from "../fields/SelectField";
 const fieldCellSx = {
   minWidth: 0,
   width: "100%",
+
+  // Desktop labels are rendered separately in grid row 1.
+  "& .MuiFormLabel-root": {
+    display: { lg: "none" },
+  },
+
   "& .MuiOutlinedInput-root": {
     minHeight: 42,
     bgcolor: "#FFFFFF",
@@ -29,10 +39,16 @@ const fieldCellSx = {
   },
 } as const;
 
-/**
- * Header-level toggle.
- * OFF is a valid boolean value, not an unanswered field.
- */
+const desktopLabelSx = {
+  display: { xs: "none", lg: "block" },
+  mb: 0.6,
+  minWidth: 0,
+  color: "#16355F",
+  fontSize: CIF_FONT_SIZES.fieldLabel,
+  fontWeight: CIF_FONT_WEIGHTS.fieldLabel,
+  lineHeight: 1.45,
+} as const;
+
 export function VaccinationAvailabilitySwitch() {
   const { data, update, readOnly } = useDiphtheriaForm();
 
@@ -86,18 +102,12 @@ export function VaccinationAvailabilitySwitch() {
   );
 }
 
-/**
- * Vaccination record fields.
- * The parent SectionHeader renders the availability switch.
- */
 export default function VaccinationHistorySection() {
   const { data, update, fieldError, markTouched, readOnly } =
     useDiphtheriaForm();
 
   const vaccination = data.vaccination;
 
-  // Keep externally provided dose counts displayable, even
-  // when they are outside the provisional dropdown range.
   const doseOptions =
     vaccination.doses !== null &&
     !VACCINATION_DOSE_OPTIONS.some(
@@ -112,8 +122,6 @@ export default function VaccinationHistorySection() {
         ]
       : VACCINATION_DOSE_OPTIONS;
 
-  // The last vaccination date is not applicable for
-  // zero doses, or until a dose count is selected.
   const dateApplicable = vaccination.doses !== null && vaccination.doses > 0;
 
   if (!vaccination.available) {
@@ -127,17 +135,19 @@ export default function VaccinationHistorySection() {
         display: "grid",
         gridTemplateColumns: {
           xs: "minmax(0, 1fr)",
-          sm: "repeat(2, minmax(0, 1fr))",
-          md: [
-            "minmax(0, 4.6fr)",
-            "minmax(0, 1.5fr)",
-            "minmax(0, 1fr)",
-            "minmax(0, 2.3fr)",
-          ].join(" "),
+          sm: "repeat(3, minmax(0, 1fr))",
+          lg: "minmax(320px, 1.6fr) repeat(3, minmax(0, 1fr))",
         },
-        alignItems: "center",
+
+        // Desktop: row 1 = field labels,
+        // row 2 = question and input boxes.
+        gridTemplateRows: {
+          lg: "auto auto",
+        },
+
+        alignItems: "start",
         columnGap: { xs: 1.5, sm: 2 },
-        rowGap: { xs: 1.25, sm: 1.5 },
+        rowGap: { xs: 1.25, sm: 1.5, lg: 0 },
         px: { xs: 1.5, sm: 2 },
         py: 2,
         minWidth: 0,
@@ -145,35 +155,87 @@ export default function VaccinationHistorySection() {
         boxSizing: "border-box",
       }}
     >
-      {/* VACCINATION DOSE INFORMATION LABEL */}
+      {/* VACCINATION QUESTION — CENTERED WITH INPUT BOXES */}
       <Box
         sx={{
+          gridColumn: {
+            xs: "1 / -1",
+            lg: "1",
+          },
+          gridRow: {
+            lg: "2",
+          },
+
           display: "flex",
           alignItems: "center",
           minWidth: 0,
-          minHeight: 42,
-          gridColumn: {
-            xs: "auto",
-            sm: "1 / -1",
-            md: "auto",
-          },
+
+          // Match the height of the actual white inputs,
+          // rather than the entire field with its label.
+          height: { lg: 42 },
+          minHeight: { xs: 42, lg: 42 },
         }}
       >
         <Typography
           component="p"
           sx={{
+            m: 0,
             color: "#17365F",
-            fontWeight: 600,
-            fontSize: "0.75rem",
+            fontWeight: CIF_FONT_WEIGHTS.vaccinationQuestion,
+            fontSize: CIF_FONT_SIZES.vaccinationQuestion,
             lineHeight: 1.5,
+            overflowWrap: "anywhere",
           }}
         >
           {VACCINATION_DOSE_LABEL}
         </Typography>
       </Box>
 
-      {/* SOURCE: BY CARD / HISTORY */}
-      <Box sx={fieldCellSx}>
+      {/* DESKTOP FIELD LABELS — GRID ROW 1 */}
+      <Typography
+        component="label"
+        htmlFor={IDS.source}
+        sx={{
+          ...desktopLabelSx,
+          gridColumn: { lg: "2" },
+          gridRow: { lg: "1" },
+        }}
+      >
+        Vaccination source
+      </Typography>
+
+      <Typography
+        component="label"
+        htmlFor={IDS.doses}
+        sx={{
+          ...desktopLabelSx,
+          gridColumn: { lg: "3" },
+          gridRow: { lg: "1" },
+        }}
+      >
+        Dose count
+      </Typography>
+
+      <Typography
+        component="label"
+        htmlFor={IDS.lastVaccinationDate}
+        sx={{
+          ...desktopLabelSx,
+          gridColumn: { lg: "4" },
+          gridRow: { lg: "1" },
+        }}
+      >
+        Date of last vaccination
+      </Typography>
+
+      {/* SOURCE — GRID ROW 2 */}
+      <Box
+        sx={{
+          ...fieldCellSx,
+          gridColumn: { lg: "2" },
+          gridRow: { lg: "2" },
+        }}
+      >
         <SelectField
           id={IDS.source}
           label="Vaccination source"
@@ -193,8 +255,14 @@ export default function VaccinationHistorySection() {
         />
       </Box>
 
-      {/* NUMBER OF DOSES */}
-      <Box sx={fieldCellSx}>
+      {/* DOSE COUNT — GRID ROW 2 */}
+      <Box
+        sx={{
+          ...fieldCellSx,
+          gridColumn: { lg: "3" },
+          gridRow: { lg: "2" },
+        }}
+      >
         <SelectField
           id={IDS.doses}
           label="Dose count"
@@ -214,8 +282,14 @@ export default function VaccinationHistorySection() {
         />
       </Box>
 
-      {/* DATE OF LAST VACCINATION */}
-      <Box sx={fieldCellSx}>
+      {/* LAST VACCINATION DATE — GRID ROW 2 */}
+      <Box
+        sx={{
+          ...fieldCellSx,
+          gridColumn: { lg: "4" },
+          gridRow: { lg: "2" },
+        }}
+      >
         <DateField
           id={IDS.lastVaccinationDate}
           label="Date of last vaccination"

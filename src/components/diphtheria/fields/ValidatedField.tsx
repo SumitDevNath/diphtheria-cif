@@ -1,5 +1,6 @@
 import { Box, InputAdornment, TextField } from "@mui/material";
 import { FieldError, FieldLabel } from "../components/FieldParts";
+import { CIF_FONT_SIZES } from "../constants/typography.constants";
 
 export interface ValidatedFieldProps {
   id: string;
@@ -67,6 +68,13 @@ export function ValidatedField({
           "& .MuiOutlinedInput-root": {
             bgcolor: "#FFF",
             borderRadius: "6px",
+          },
+          "& .MuiInputBase-input": {
+            fontSize: CIF_FONT_SIZES.input,
+          },
+          "& .MuiInputBase-input::placeholder": {
+            fontSize: CIF_FONT_SIZES.input,
+            opacity: 0.7,
           },
         }}
       />

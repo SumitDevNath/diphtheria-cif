@@ -19,6 +19,10 @@ import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 import DateField from "../fields/DateField";
 import FacilityAutocomplete from "../fields/FacilityAutocomplete";
 import type { FacilityOption, Option } from "../types/diphtheria.types";
+import {
+  CIF_FONT_SIZES,
+  CIF_FONT_WEIGHTS,
+} from "../constants/typography.constants";
 
 const inputSx = {
   minWidth: 0,
@@ -99,7 +103,8 @@ function QuestionRow({
           <Typography
             sx={{
               color: "#17365F",
-              fontSize: "0.78rem",
+              fontSize: CIF_FONT_SIZES.backgroundQuestion,
+              fontWeight: CIF_FONT_WEIGHTS.backgroundQuestion,
               lineHeight: 1.5,
               minWidth: 0,
               overflowWrap: "break-word",
@@ -243,7 +248,7 @@ function DetailsField({
           fontSize: "0.73rem",
         }}
       >
-        Provide Details
+        Provide Contact Details
       </Typography>
 
       <Box sx={{ flex: 1, ...inputSx }}>

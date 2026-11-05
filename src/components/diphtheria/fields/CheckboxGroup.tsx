@@ -11,6 +11,10 @@ import {
 } from "@mui/material";
 import { FieldError } from "../components/FieldParts";
 import type { ClinicalSelection } from "../types/diphtheria.types";
+import {
+  CIF_FONT_SIZES,
+  CIF_FONT_WEIGHTS,
+} from "../constants/typography.constants";
 
 interface CheckboxGroupProps {
   id: string;
@@ -43,7 +47,7 @@ const optionSx = {
   "& .MuiFormControlLabel-label": {
     pt: 0.35,
     color: "#29486C",
-    fontSize: "0.72rem",
+    fontSize: CIF_FONT_SIZES.optionLabel,
     lineHeight: 1.45,
     overflowWrap: "anywhere",
   },
@@ -163,8 +167,8 @@ export default function CheckboxGroup({
           component="h3"
           sx={{
             color: "#15365F",
-            fontSize: "0.8rem",
-            fontWeight: 700,
+            fontSize: CIF_FONT_SIZES.optionLabel,
+            fontWeight: CIF_FONT_WEIGHTS.optionLabel,
             lineHeight: 1.4,
             overflowWrap: "anywhere",
           }}

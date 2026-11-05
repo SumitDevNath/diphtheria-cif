@@ -1,5 +1,9 @@
 import { Box, Paper, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import {
+  CIF_FONT_SIZES,
+  CIF_FONT_WEIGHTS,
+} from "../constants/typography.constants";
 
 interface SectionHeaderProps {
   id: string;
@@ -75,8 +79,8 @@ export default function SectionHeader({
             component="h2"
             sx={{
               color: "#0A2850",
-              fontSize: "1.25rem",
-              fontWeight: 700,
+              fontSize: CIF_FONT_SIZES.sectionHeading,
+              fontWeight: CIF_FONT_WEIGHTS.sectionHeading,
               lineHeight: 1.5,
             }}
           >
