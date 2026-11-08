@@ -5,6 +5,7 @@ import { Autocomplete, Box, TextField } from "@mui/material";
 import {
   ETHNICITY_OPTIONS,
   IDENTIFICATION_FIELD_IDS as IDS,
+  IDENTIFICATION_REQUIRED as REQUIRED,
   OCCUPATION_SUGGESTIONS,
   PREGNANCY_STATUS_OPTIONS,
 } from "../constants/form.constants";
@@ -102,7 +103,7 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
     >
       {/* OCCUPATION */}
       <Box sx={fieldSx}>
-        <FieldLabel id={IDS.occupation} required>
+        <FieldLabel id={IDS.occupation} required={REQUIRED.occupation}>
           Occupation
         </FieldLabel>
 
@@ -172,7 +173,7 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
           }
           onBlur={() => markTouched(IDS.ethnicity)}
           error={fieldError(IDS.ethnicity)}
-          required
+          required={REQUIRED.ethnicity}
           readOnly={readOnly}
         />
       </Box>
@@ -191,7 +192,7 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
           }
           onBlur={() => markTouched(IDS.examinationDate)}
           error={fieldError(IDS.examinationDate)}
-          required
+          required={REQUIRED.examinationDate}
           noFuture
           readOnly={readOnly}
         />
@@ -200,7 +201,7 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
       {/* CONDITIONAL SCHOOL NAME */}
       {showSchool && (
         <Box sx={fieldSx}>
-          <FieldLabel id={IDS.schoolName} required>
+          <FieldLabel id={IDS.schoolName} required={REQUIRED.schoolName}>
             School Name
           </FieldLabel>
 
@@ -246,7 +247,7 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
               }
               onBlur={() => markTouched(IDS.pregnancyStatus)}
               error={fieldError(IDS.pregnancyStatus)}
-              required
+              required={REQUIRED.pregnancyStatus}
               readOnly={readOnly}
             />
           </Box>

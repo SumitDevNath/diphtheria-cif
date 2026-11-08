@@ -1,3 +1,4 @@
+import { REQUIRED_FIELDS } from "./required.constants";
 import type {
   Option,
   VaccinationHistory,
@@ -11,14 +12,7 @@ export const VACCINATION_FIELD_IDS = {
   lastVaccinationDate: "vaccination-lastVaccinationDate",
 } as const satisfies Record<keyof VaccinationHistory, string>;
 
-export const VACCINATION_REQUIRED = {
-  source: true,
-  doses: true,
-  lastVaccinationDate: true,
-} as const satisfies Record<
-  Exclude<keyof VaccinationHistory, "available">,
-  boolean
->;
+export const VACCINATION_REQUIRED = REQUIRED_FIELDS.vaccination;
 
 export const VACCINATION_SOURCE_OPTIONS: readonly Option<VaccinationSource>[] =
   [

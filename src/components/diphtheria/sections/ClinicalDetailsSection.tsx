@@ -85,6 +85,7 @@ export default function ClinicalDetailsSection({
               id={IDS[key]}
               number={number}
               title={title}
+              required={REQUIRED[key]}
               options={options}
               value={clinical[key]}
               onChange={(nextValue) => updateClinicalGroup(key, nextValue)}

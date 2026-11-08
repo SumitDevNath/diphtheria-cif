@@ -3,6 +3,7 @@ import {
   OTHER_MEDICATION,
   PREDEFINED_MEDICATIONS,
   TREATMENT_FIELD_IDS as IDS,
+  TREATMENT_REQUIRED as REQUIRED,
 } from "../constants/treatment.constants";
 
 import { normalizeMedicationName } from "../utils/form.utils";
@@ -17,7 +18,14 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
   const errors: FormFieldErrors = {};
 
   if (rows.length === 0) {
-    errors[IDS.antibioticRows] = "Add an antibiotic therapy record.";
+    if (
+      REQUIRED.medication ||
+      REQUIRED.administrationRoute ||
+      REQUIRED.startDate ||
+      REQUIRED.endDate
+    ) {
+      errors[IDS.antibioticRows] = "Add an antibiotic therapy record.";
+    }
     return errors;
   }
 
@@ -32,10 +40,12 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
     const medication = row.medication.trim();
 
     if (!medication) {
-      errors[medicationId] =
-        row.medicationOrigin === "custom"
-          ? "Enter the custom medication name."
-          : "Select a medication.";
+      if (REQUIRED.medication || row.medicationOrigin === "custom") {
+        errors[medicationId] =
+          row.medicationOrigin === "custom"
+            ? "Enter the custom medication name."
+            : "Select a medication.";
+      }
     } else if (medication === OTHER_MEDICATION) {
       errors[medicationId] = "Specify the actual medication.";
     } else if (row.medicationOrigin === null) {
@@ -58,13 +68,15 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
     }
 
     if (!row.administrationRoute) {
-      errors[routeId] = "Select an administration route.";
+      if (REQUIRED.administrationRoute) {
+        errors[routeId] = "Select an administration route.";
+      }
     } else if (!["oral", "iv", "im"].includes(row.administrationRoute)) {
       errors[routeId] = "Select a valid route.";
     }
 
     if (!row.startDate.trim()) {
-      errors[startId] = "Start date is required.";
+      if (REQUIRED.startDate) errors[startId] = "Start date is required.";
     } else {
       const message = validateDateText(row.startDate, { noFuture: true });
 
@@ -72,7 +84,7 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
     }
 
     if (!row.endDate.trim()) {
-      errors[endId] = "End date is required.";
+      if (REQUIRED.endDate) errors[endId] = "End date is required.";
     } else {
       const message = validateDateText(row.endDate, { noFuture: true });
 

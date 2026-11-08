@@ -1,3 +1,5 @@
+import { REQUIRED_FIELDS } from "./required.constants";
+
 import {
   MEDICATION_OPTIONS,
   ADMINISTRATION_ROUTE_OPTIONS,
@@ -34,10 +36,4 @@ export function antibioticFieldId(
   return `treatment-${rowId}-${field}`;
 }
 
-export const TREATMENT_REQUIRED = {
-  antibioticsAdministered: true,
-  medication: true,
-  administrationRoute: true,
-  startDate: true,
-  endDate: true,
-} as const;
+export const TREATMENT_REQUIRED = REQUIRED_FIELDS.treatment;

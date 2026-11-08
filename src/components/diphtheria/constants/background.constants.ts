@@ -1,3 +1,4 @@
+import { REQUIRED_FIELDS } from "./required.constants";
 import type { BackgroundInformation, Option } from "../types/diphtheria.types";
 
 type BackgroundFieldKey = Exclude<keyof BackgroundInformation, "travelHistory">;
@@ -14,17 +15,7 @@ export const BACKGROUND_FIELD_IDS = {
   healthcareFacility: "background-healthcareFacility",
 } as const satisfies Record<BackgroundFieldKey, string>;
 
-export const BACKGROUND_REQUIRED: Record<BackgroundFieldKey, boolean> = {
-  contactKnownCase: true,
-  contactDetails: true,
-  householdSize: true,
-  caregiversTreated: true,
-  similarIllnessInFamily: true,
-  similarIllnessDetails: true,
-  healthcareVisit: true,
-  healthcareVisitDate: true,
-  healthcareFacility: true,
-};
+export const BACKGROUND_REQUIRED = REQUIRED_FIELDS.background;
 
 /** Development suggestions only; not an upper limit. */
 

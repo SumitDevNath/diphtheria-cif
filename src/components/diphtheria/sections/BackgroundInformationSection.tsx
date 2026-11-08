@@ -3,6 +3,7 @@ import { Box, Paper, TextField, Typography } from "@mui/material";
 
 import {
   BACKGROUND_FIELD_IDS as IDS,
+  BACKGROUND_REQUIRED as REQUIRED,
   CAREGIVER_COUNT_OPTIONS,
 } from "../constants/background.constants";
 
@@ -139,7 +140,7 @@ export default function BackgroundInformationSection({
         }
         onBlur={() => markTouched(IDS.contactKnownCase)}
         error={fieldError(IDS.contactKnownCase)}
-        required
+        required={REQUIRED.contactKnownCase}
         readOnly={readOnly}
       />
 
@@ -147,7 +148,10 @@ export default function BackgroundInformationSection({
       {contactIsYes && (
         <Box sx={{ mt: 2, minWidth: 0 }}>
           <Box sx={{ mb: 2 }}>
-            <FieldLabel id={IDS.contactDetails} required>
+            <FieldLabel
+              id={IDS.contactDetails}
+              required={REQUIRED.contactDetails}
+            >
               Contact details
             </FieldLabel>
 
@@ -257,7 +261,10 @@ export default function BackgroundInformationSection({
             }}
           >
             <Box sx={{ minWidth: 0 }}>
-              <FieldLabel id={IDS.householdSize} required>
+              <FieldLabel
+                id={IDS.householdSize}
+                required={REQUIRED.householdSize}
+              >
                 2. Number of persons living in the household
               </FieldLabel>
 
@@ -308,7 +315,7 @@ export default function BackgroundInformationSection({
                 onBlur={() => markTouched(IDS.caregiversTreated)}
                 error={fieldError(IDS.caregiversTreated)}
                 readOnly={readOnly}
-                required
+                required={REQUIRED.caregiversTreated}
               />
             </Box>
           </Box>
@@ -339,7 +346,10 @@ export default function BackgroundInformationSection({
                 })
               }
             >
-              <FieldLabel id={IDS.similarIllnessDetails} required>
+              <FieldLabel
+                id={IDS.similarIllnessDetails}
+                required={REQUIRED.similarIllnessDetails}
+              >
                 Details of similar illness
               </FieldLabel>
 
@@ -409,7 +419,7 @@ export default function BackgroundInformationSection({
                   onBlur={() => markTouched(IDS.healthcareVisitDate)}
                   error={fieldError(IDS.healthcareVisitDate)}
                   readOnly={readOnly}
-                  required
+                  required={REQUIRED.healthcareVisitDate}
                   noFuture
                 />
 
@@ -429,7 +439,7 @@ export default function BackgroundInformationSection({
                   onBlur={() => markTouched(IDS.healthcareFacility)}
                   error={fieldError(IDS.healthcareFacility)}
                   readOnly={readOnly}
-                  required
+                  required={REQUIRED.healthcareFacility}
                 />
               </Box>
             </ToggleCard>

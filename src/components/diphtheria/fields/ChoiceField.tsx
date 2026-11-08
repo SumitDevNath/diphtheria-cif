@@ -30,7 +30,7 @@ export function ChoiceField<T extends string>({
   required = false,
 }: ChoiceProps<T>) {
   return (
-    <Box sx={{ minWidth: 0 }}>
+    <Box sx={{ minWidth: 0, display: "flex", alignItems: "center", gap: 2 }}>
       <FieldLabel id={id} required={required}>
         {label}
       </FieldLabel>

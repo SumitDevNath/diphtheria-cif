@@ -7,6 +7,7 @@ import {
 
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 import DateField from "../fields/DateField";
+import { RequiredMark } from "./FieldParts";
 
 export default function ClinicalOnsetHeaderField() {
   const { data, update, fieldError, markTouched, readOnly } =
@@ -43,6 +44,7 @@ export default function ClinicalOnsetHeaderField() {
         }}
       >
         Date of onset of fever and sore throat
+        {REQUIRED.onsetDate && <RequiredMark />}
       </Typography>
 
       {/* DATE INPUT */}

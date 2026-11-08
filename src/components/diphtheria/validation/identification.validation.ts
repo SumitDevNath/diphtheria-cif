@@ -1,4 +1,7 @@
-import { IDENTIFICATION_FIELD_IDS as IDS } from "../constants/form.constants";
+import {
+  IDENTIFICATION_FIELD_IDS as IDS,
+  IDENTIFICATION_REQUIRED as REQUIRED,
+} from "../constants/form.constants";
 
 import {
   isSchoolOccupation,
@@ -23,20 +26,24 @@ export function createIdentificationValidationRules({
     {
       id: IDS.occupation,
       validate: ({ identification }) =>
-        identification.occupation?.trim()
+        identification.occupation?.trim() || !REQUIRED.occupation
           ? null
           : "Select or enter an occupation.",
     },
     {
       id: IDS.ethnicity,
       validate: ({ identification }) =>
-        identification.ethnicity ? null : "Select ethnicity.",
+        identification.ethnicity || !REQUIRED.ethnicity
+          ? null
+          : "Select ethnicity.",
     },
     {
       id: IDS.examinationDate,
       validate: ({ identification }) => {
         if (!identification.examinationDate.trim()) {
-          return "Examination date is required.";
+          return REQUIRED.examinationDate
+            ? "Examination date is required."
+            : null;
         }
 
         return validateDateText(identification.examinationDate, {
@@ -49,7 +56,7 @@ export function createIdentificationValidationRules({
       when: ({ identification }) =>
         isSchoolOccupation(identification.occupation),
       validate: ({ identification }) =>
-        identification.schoolName.trim()
+        identification.schoolName.trim() || !REQUIRED.schoolName
           ? null
           : "School name is required for Teacher or Student.",
     },
@@ -57,13 +64,17 @@ export function createIdentificationValidationRules({
       id: IDS.pregnancyStatus,
       when: () => adultFieldsApplicable,
       validate: ({ identification }) =>
-        identification.pregnancyStatus ? null : "Select pregnancy status.",
+        identification.pregnancyStatus || !REQUIRED.pregnancyStatus
+          ? null
+          : "Select pregnancy status.",
     },
     {
       id: IDS.motherName,
       when: () => adultFieldsApplicable,
       validate: ({ identification }) =>
-        identification.motherName.trim() ? null : "Mother's name is required.",
+        identification.motherName.trim() || !REQUIRED.motherName
+          ? null
+          : "Mother's name is required.",
     },
   ];
 }

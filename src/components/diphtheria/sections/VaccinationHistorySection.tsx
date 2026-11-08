@@ -10,6 +10,7 @@ import {
   CIF_FONT_SIZES,
   CIF_FONT_WEIGHTS,
 } from "../constants/typography.constants";
+import { RequiredMark } from "../components/FieldParts";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 import DateField from "../fields/DateField";
 import SelectField from "../fields/SelectField";
@@ -194,7 +195,7 @@ export default function VaccinationHistorySection() {
           gridRow: { lg: "1" },
         }}
       >
-        Vaccination source
+        Vaccination source{REQUIRED.source && <RequiredMark />}
       </Typography>
 
       <Typography
@@ -206,7 +207,7 @@ export default function VaccinationHistorySection() {
           gridRow: { lg: "1" },
         }}
       >
-        Dose count
+        Dose count{REQUIRED.doses && <RequiredMark />}
       </Typography>
 
       <Typography
@@ -219,6 +220,7 @@ export default function VaccinationHistorySection() {
         }}
       >
         Date of last vaccination
+        {REQUIRED.lastVaccinationDate && dateApplicable && <RequiredMark />}
       </Typography>
 
       {/* SOURCE — GRID ROW 2 */}

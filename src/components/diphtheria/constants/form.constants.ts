@@ -1,3 +1,5 @@
+import { REQUIRED_FIELDS } from "./required.constants";
+
 import type {
   AdministrationRoute,
   AntibioticRow,
@@ -50,18 +52,8 @@ export const PREGNANCY_STATUS_OPTIONS: readonly Option<PregnancyStatus>[] = [
   { value: "non-pregnant", label: "Non-Pregnant" },
 ];
 
-/**
- * All currently displayed Case Identification fields
- * are mandatory for this development stage.
- */
-export const IDENTIFICATION_REQUIRED = {
-  motherName: true,
-  occupation: true,
-  ethnicity: true,
-  pregnancyStatus: true,
-  examinationDate: true,
-  schoolName: true,
-} as const satisfies Record<keyof CaseIdentification, boolean>;
+/** Existing section alias; edit required flags only in required.constants.ts. */
+export const IDENTIFICATION_REQUIRED = REQUIRED_FIELDS.identification;
 
 export const IDENTIFICATION_FIELD_IDS = {
   motherName: "identification-motherName",

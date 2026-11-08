@@ -1,4 +1,4 @@
-import { FormHelperText, FormLabel } from "@mui/material";
+import { Box, FormHelperText, FormLabel } from "@mui/material";
 import {
   CIF_FONT_SIZES,
   CIF_FONT_WEIGHTS,
@@ -64,5 +64,18 @@ export function FieldError({
     >
       {message}
     </FormHelperText>
+  );
+}
+
+/** Red required indicator for table headings and custom Typography labels. */
+export function RequiredMark() {
+  return (
+    <Box
+      component="span"
+      aria-hidden="true"
+      sx={{ color: "#D32F2F", fontWeight: 700, ml: 0.25 }}
+    >
+      *
+    </Box>
   );
 }

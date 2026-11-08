@@ -14,12 +14,13 @@ import {
   Typography,
 } from "@mui/material";
 
-import { FieldError } from "../components/FieldParts";
+import { FieldError, RequiredMark } from "../components/FieldParts";
 
 import {
   ANTIBIOTIC_MEDICATION_OPTIONS,
   ANTIBIOTIC_ROUTE_OPTIONS,
   OTHER_MEDICATION,
+  TREATMENT_REQUIRED as REQUIRED,
   antibioticFieldId,
 } from "../constants/treatment.constants";
 
@@ -57,7 +58,13 @@ const inputSx = {
   },
 } as const;
 
-function MobileCellLabel({ children }: { children: string }) {
+function MobileCellLabel({
+  children,
+  required = false,
+}: {
+  children: string;
+  required?: boolean;
+}) {
   return (
     <Typography
       sx={{
@@ -72,6 +79,7 @@ function MobileCellLabel({ children }: { children: string }) {
       }}
     >
       {children}
+      {required && <RequiredMark />}
     </Typography>
   );
 }
@@ -130,7 +138,7 @@ export default function MedicationRow({
       {/* MEDICATION */}
       <TableCell>
         <Box sx={{ minWidth: 0 }}>
-          <MobileCellLabel>
+          <MobileCellLabel required={REQUIRED.medication}>
             {`Medication — Record ${index + 1}`}
           </MobileCellLabel>
 
@@ -215,7 +223,9 @@ export default function MedicationRow({
       {/* ADMINISTRATION ROUTE */}
       <TableCell>
         <Box sx={{ minWidth: 0 }}>
-          <MobileCellLabel>Administration route</MobileCellLabel>
+          <MobileCellLabel required={REQUIRED.administrationRoute}>
+            Administration route
+          </MobileCellLabel>
 
           <FormControl size="small" fullWidth error={Boolean(routeError)}>
             <Select<AdministrationRoute | "">
@@ -262,12 +272,15 @@ export default function MedicationRow({
       {/* START DATE */}
       <TableCell>
         <Box sx={inputSx}>
-          <MobileCellLabel>Start date</MobileCellLabel>
+          <MobileCellLabel required={REQUIRED.startDate}>
+            Start date
+          </MobileCellLabel>
 
           <DateField
             id={startId}
             label={`Start date for record ${index + 1}`}
             hideLabel
+            required={REQUIRED.startDate}
             value={row.startDate}
             onChange={(startDate) => updateRow({ startDate })}
             onBlur={() => markTouched(startId)}
@@ -281,12 +294,15 @@ export default function MedicationRow({
       {/* END DATE */}
       <TableCell>
         <Box sx={inputSx}>
-          <MobileCellLabel>End date</MobileCellLabel>
+          <MobileCellLabel required={REQUIRED.endDate}>
+            End date
+          </MobileCellLabel>
 
           <DateField
             id={endId}
             label={`End date for record ${index + 1}`}
             hideLabel
+            required={REQUIRED.endDate}
             value={row.endDate}
             onChange={(endDate) => updateRow({ endDate })}
             onBlur={() => markTouched(endId)}

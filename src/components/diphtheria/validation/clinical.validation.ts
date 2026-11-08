@@ -27,6 +27,7 @@ function validateClinicalSelection(
   selection: ClinicalSelection,
   predefinedOptions: readonly string[],
   title: string,
+  required: boolean,
 ): string | null {
   const predefined = new Set(predefinedOptions.map(normalize));
 
@@ -75,7 +76,7 @@ function validateClinicalSelection(
   }
 
   // Mandatory checkbox-group validation.
-  if (selection.selected.length === 0) {
+  if (required && selection.selected.length === 0) {
     return `Select at least one ${title.toLowerCase()} option.`;
   }
 
@@ -117,7 +118,7 @@ export const CLINICAL_VALIDATION_RULES: readonly ValidationRule[] = [
       id: IDS[key],
 
       validate: ({ clinical }: DiphtheriaFormData) =>
-        validateClinicalSelection(clinical[key], options, title),
+        validateClinicalSelection(clinical[key], options, title, REQUIRED[key]),
     }),
   ),
 

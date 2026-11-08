@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { FieldError } from "../components/FieldParts";
+import { FieldError, RequiredMark } from "../components/FieldParts";
 import type { ClinicalSelection } from "../types/diphtheria.types";
 import {
   CIF_FONT_SIZES,
@@ -25,6 +25,7 @@ interface CheckboxGroupProps {
   onChange: (value: ClinicalSelection) => void;
   onBlur?: () => void;
   error?: string;
+  required?: boolean;
   readOnly?: boolean;
 }
 
@@ -62,6 +63,7 @@ export default function CheckboxGroup({
   onChange,
   onBlur,
   error,
+  required = false,
   readOnly = false,
 }: CheckboxGroupProps) {
   const commit = (next: ClinicalSelection) => {
@@ -174,6 +176,7 @@ export default function CheckboxGroup({
           }}
         >
           {title}
+          {required && <RequiredMark />}
         </Typography>
       </Box>
 

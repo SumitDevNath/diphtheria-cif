@@ -1,3 +1,4 @@
+import { REQUIRED_FIELDS } from "./required.constants";
 import type { AVPU, Option, Vitals } from "../types/diphtheria.types";
 
 export type VitalInputKey = Exclude<keyof Vitals, "temperatureUnit">;
@@ -11,14 +12,7 @@ export const VITALS_FIELD_IDS = {
   avpu: "vitals-avpu",
 } as const satisfies Record<VitalInputKey, string>;
 
-export const VITALS_REQUIRED = {
-  heartRate: true,
-  respiratoryRate: true,
-  temperature: true,
-  bloodPressure: true,
-  oxygenSaturation: true,
-  avpu: true,
-} as const satisfies Record<VitalInputKey, boolean>;
+export const VITALS_REQUIRED = REQUIRED_FIELDS.vitals;
 
 export const AVPU_OPTIONS: readonly Option<AVPU>[] = [
   { value: "alert", label: "Alert" },

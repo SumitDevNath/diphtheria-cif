@@ -11,10 +11,13 @@ import {
   Typography,
 } from "@mui/material";
 
-import { FieldError } from "../components/FieldParts";
+import { FieldError, RequiredMark } from "../components/FieldParts";
 import MedicationRow from "../fields/MedicationRow";
 import ToggleSwitch from "../fields/ToggleSwitch";
-import { TREATMENT_FIELD_IDS as IDS } from "../constants/treatment.constants";
+import {
+  TREATMENT_FIELD_IDS as IDS,
+  TREATMENT_REQUIRED as REQUIRED,
+} from "../constants/treatment.constants";
 
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 
@@ -228,7 +231,7 @@ export default function TreatmentInformationSection() {
                         width: showRemove ? "27%" : "30%",
                       }}
                     >
-                      Medication
+                      Medication{REQUIRED.medication && <RequiredMark />}
                     </TableCell>
 
                     <TableCell
@@ -237,11 +240,16 @@ export default function TreatmentInformationSection() {
                       }}
                     >
                       Administration route
+                      {REQUIRED.administrationRoute && <RequiredMark />}
                     </TableCell>
 
-                    <TableCell sx={{ width: "20%" }}>Start date</TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      Start date{REQUIRED.startDate && <RequiredMark />}
+                    </TableCell>
 
-                    <TableCell sx={{ width: "20%" }}>End date</TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      End date{REQUIRED.endDate && <RequiredMark />}
+                    </TableCell>
 
                     {showRemove && (
                       <TableCell

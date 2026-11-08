@@ -1,6 +1,7 @@
 import {
   CAREGIVER_COUNT_OPTIONS,
   BACKGROUND_FIELD_IDS as IDS,
+  BACKGROUND_REQUIRED as REQUIRED,
 } from "../constants/background.constants";
 import { validateDateText } from "../utils/date.utils";
 import type { DiphtheriaFormData } from "../types/diphtheria.types";
@@ -15,20 +16,24 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
   {
     id: IDS.contactKnownCase,
     validate: ({ background }) =>
-      background.contactKnownCase ? null : "Select Yes, No or Unknown.",
+      background.contactKnownCase || !REQUIRED.contactKnownCase
+        ? null
+        : "Select Yes, No or Unknown.",
   },
   {
     id: IDS.contactDetails,
     when: contactIsYes,
     validate: ({ background }) =>
-      background.contactDetails.trim() ? null : "Contact details are required.",
+      background.contactDetails.trim() || !REQUIRED.contactDetails
+        ? null
+        : "Contact details are required.",
   },
   {
     id: IDS.householdSize,
     when: contactIsYes,
     validate: ({ background }) => {
       if (!background.householdSize.trim()) {
-        return "Enter the household count.";
+        return REQUIRED.householdSize ? "Enter the household count." : null;
       }
       return validCount(background.householdSize)
         ? null
@@ -39,9 +44,11 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
     id: IDS.caregiversTreated,
     when: contactIsYes,
     validate: ({ background }) =>
-      CAREGIVER_COUNT_OPTIONS.includes(background.caregiversTreated ?? "")
+      !background.caregiversTreated && !REQUIRED.caregiversTreated
         ? null
-        : "Select the number of caregivers treated.",
+        : CAREGIVER_COUNT_OPTIONS.includes(background.caregiversTreated ?? "")
+          ? null
+          : "Select the number of caregivers treated.",
   },
   {
     id: IDS.similarIllnessDetails,
@@ -49,7 +56,7 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
       background.contactKnownCase === "yes" &&
       background.similarIllnessInFamily === "yes",
     validate: ({ background }) =>
-      background.similarIllnessDetails.trim()
+      background.similarIllnessDetails.trim() || !REQUIRED.similarIllnessDetails
         ? null
         : "Provide details of the similar illness.",
   },
@@ -60,7 +67,9 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
       background.healthcareVisit === "yes",
     validate: ({ background }) => {
       if (!background.healthcareVisitDate.trim()) {
-        return "Date of visit is required.";
+        return REQUIRED.healthcareVisitDate
+          ? "Date of visit is required."
+          : null;
       }
       return validateDateText(background.healthcareVisitDate, {
         noFuture: true,
@@ -75,7 +84,8 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
     validate: ({ background }) => {
       const facility = background.healthcareFacility;
 
-      return facility?.id && facility.name.trim()
+      return (facility?.id && facility.name.trim()) ||
+        (!facility && !REQUIRED.healthcareFacility)
         ? null
         : "Select a healthcare facility.";
     },

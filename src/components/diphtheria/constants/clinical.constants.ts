@@ -1,3 +1,4 @@
+import { REQUIRED_FIELDS } from "./required.constants";
 import type {
   ClinicalDetails,
   ClinicalGroupKey,
@@ -88,13 +89,4 @@ export const CLINICAL_FIELD_IDS = {
   hospitalRecordNumber: "clinical-hospitalRecordNumber",
 } as const satisfies Record<keyof ClinicalDetails, string>;
 
-export const CLINICAL_REQUIRED = {
-  onsetDate: true,
-  hospital: true,
-  visitDate: true,
-  admissionDate: true,
-  hospitalRecordNumber: true,
-} as const satisfies Record<
-  Exclude<keyof ClinicalDetails, ClinicalGroupKey>,
-  boolean
->;
+export const CLINICAL_REQUIRED = REQUIRED_FIELDS.clinical;
