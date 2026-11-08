@@ -67,10 +67,6 @@ export default function SelectField<T extends string | number>({
             borderRadius: "6px",
           }}
         >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
-
           {options.map((option) => (
             <MenuItem key={String(option.value)} value={String(option.value)}>
               {option.label}

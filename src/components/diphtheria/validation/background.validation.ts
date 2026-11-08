@@ -1,4 +1,7 @@
-import { BACKGROUND_FIELD_IDS as IDS } from "../constants/background.constants";
+import {
+  CAREGIVER_COUNT_OPTIONS,
+  BACKGROUND_FIELD_IDS as IDS,
+} from "../constants/background.constants";
 import { validateDateText } from "../utils/date.utils";
 import type { DiphtheriaFormData } from "../types/diphtheria.types";
 import type { ValidationRule } from "./form.validation";
@@ -35,13 +38,10 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
   {
     id: IDS.caregiversTreated,
     when: contactIsYes,
-    validate: ({ background }) => {
-      const count = background.caregiversTreated;
-      if (count === null || count.trim() === "") {
-        return "Select the number of caregivers treated.";
-      }
-      return validCount(count) ? null : "Select a valid count.";
-    },
+    validate: ({ background }) =>
+      CAREGIVER_COUNT_OPTIONS.includes(background.caregiversTreated ?? "")
+        ? null
+        : "Select the number of caregivers treated.",
   },
   {
     id: IDS.similarIllnessDetails,

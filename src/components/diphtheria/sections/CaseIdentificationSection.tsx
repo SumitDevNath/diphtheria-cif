@@ -102,7 +102,9 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
     >
       {/* OCCUPATION */}
       <Box sx={fieldSx}>
-        <FieldLabel id={IDS.occupation}>Occupation</FieldLabel>
+        <FieldLabel id={IDS.occupation} required>
+          Occupation
+        </FieldLabel>
 
         <Autocomplete<string, false, false, true>
           freeSolo
@@ -198,7 +200,9 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
       {/* CONDITIONAL SCHOOL NAME */}
       {showSchool && (
         <Box sx={fieldSx}>
-          <FieldLabel id={IDS.schoolName}>School Name</FieldLabel>
+          <FieldLabel id={IDS.schoolName} required>
+            School Name
+          </FieldLabel>
 
           <TextField
             id={IDS.schoolName}
@@ -244,33 +248,6 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
               error={fieldError(IDS.pregnancyStatus)}
               required
               readOnly={readOnly}
-            />
-          </Box>
-
-          <Box sx={fieldSx}>
-            <FieldLabel id={IDS.motherName}>Mother's Name</FieldLabel>
-
-            <TextField
-              id={IDS.motherName}
-              value={identification.motherName}
-              onChange={(event) => updateText("motherName", event.target.value)}
-              onBlur={() => markTouched(IDS.motherName)}
-              placeholder="Enter mother's name"
-              size="small"
-              fullWidth
-              error={Boolean(fieldError(IDS.motherName))}
-              slotProps={{
-                htmlInput: {
-                  readOnly,
-                  "aria-describedby": `${IDS.motherName}-helper`,
-                },
-              }}
-              sx={fieldSx}
-            />
-
-            <FieldError
-              id={IDS.motherName}
-              message={fieldError(IDS.motherName)}
             />
           </Box>
         </>

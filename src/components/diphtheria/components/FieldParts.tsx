@@ -16,6 +16,7 @@ export function FieldLabel({
   return (
     <FormLabel
       htmlFor={id}
+      required={required}
       sx={{
         display: "block",
         mb: 0.6,
@@ -26,10 +27,14 @@ export function FieldLabel({
         "&.Mui-focused": {
           color: "#16355F",
         },
+        "& .MuiFormLabel-asterisk": {
+          color: "#D32F2F",
+          fontWeight: 700,
+          ml: 0.25,
+        },
       }}
     >
       {children}
-      {required ? " *" : ""}
     </FormLabel>
   );
 }

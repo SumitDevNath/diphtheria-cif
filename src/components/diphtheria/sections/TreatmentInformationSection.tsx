@@ -165,11 +165,6 @@ export default function TreatmentInformationSection() {
 
   const showRemove = antibioticRows.length > 1;
 
-  const steroidsSelected = antibioticRows.some(
-    (row) =>
-      row.medication === "Steroids" && row.medicationOrigin === "predefined",
-  );
-
   return (
     <Box
       sx={{
@@ -284,8 +279,9 @@ export default function TreatmentInformationSection() {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: "flex-start",
             mt: 1.5,
+            ml: 1,
           }}
         >
           <Button
@@ -308,21 +304,6 @@ export default function TreatmentInformationSection() {
             + Add Row
           </Button>
         </Box>
-
-        {steroidsSelected && (
-          <Typography
-            variant="caption"
-            sx={{
-              display: "block",
-              mt: 1,
-              color: "warning.dark",
-              fontSize: "0.75rem",
-            }}
-          >
-            Clinical review: Steroids is included in the requested medication
-            list but is not an antibiotic.
-          </Typography>
-        )}
       </Box>
     </Box>
   );

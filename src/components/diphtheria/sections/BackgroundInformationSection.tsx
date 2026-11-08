@@ -147,7 +147,9 @@ export default function BackgroundInformationSection({
       {contactIsYes && (
         <Box sx={{ mt: 2, minWidth: 0 }}>
           <Box sx={{ mb: 2 }}>
-            <FieldLabel id={IDS.contactDetails}>Contact details</FieldLabel>
+            <FieldLabel id={IDS.contactDetails} required>
+              Contact details
+            </FieldLabel>
 
             <TextField
               id={IDS.contactDetails}
@@ -255,7 +257,7 @@ export default function BackgroundInformationSection({
             }}
           >
             <Box sx={{ minWidth: 0 }}>
-              <FieldLabel id={IDS.householdSize}>
+              <FieldLabel id={IDS.householdSize} required>
                 2. Number of persons living in the household
               </FieldLabel>
 
@@ -337,7 +339,7 @@ export default function BackgroundInformationSection({
                 })
               }
             >
-              <FieldLabel id={IDS.similarIllnessDetails}>
+              <FieldLabel id={IDS.similarIllnessDetails} required>
                 Details of similar illness
               </FieldLabel>
 

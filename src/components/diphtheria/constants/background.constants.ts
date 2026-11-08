@@ -27,10 +27,14 @@ export const BACKGROUND_REQUIRED: Record<BackgroundFieldKey, boolean> = {
 };
 
 /** Development suggestions only; not an upper limit. */
-export const CAREGIVER_COUNT_OPTIONS: readonly string[] = Array.from(
-  { length: 11 },
-  (_, index) => String(index),
-);
+
+export const CAREGIVER_COUNT_OPTIONS: readonly string[] = [
+  "0",
+  "1",
+  "2",
+  "3",
+  "3+",
+];
 
 export const CONTACT_RESPONSE_OPTIONS: readonly Option<
   "yes" | "no" | "unknown"
