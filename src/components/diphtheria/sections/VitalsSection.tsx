@@ -19,6 +19,11 @@ import SelectField from "../fields/SelectField";
 import { NumberField, ValidatedField } from "../fields/ValidatedField";
 import type { TemperatureUnit } from "../types/diphtheria.types";
 
+import {
+  convertTemperature,
+  isValidTemperatureNumber,
+} from "../utils/temperature.utils";
+
 const fieldCellSx = {
   minWidth: 0,
   width: "100%",
@@ -47,6 +52,29 @@ export default function VitalsSection() {
   const { data, update, fieldError, markTouched, readOnly } =
     useDiphtheriaForm();
 
+  const handleTemperatureUnitChange = (nextUnit: TemperatureUnit | null) => {
+    if (!nextUnit) return;
+
+    const currentUnit = data.vitals.temperatureUnit;
+    const currentValue = data.vitals.temperature;
+
+    if (currentUnit === nextUnit) return;
+
+    // Do not silently reinterpret malformed input.
+    // Its validation error remains Submit-only.
+    if (currentValue.trim() && !isValidTemperatureNumber(currentValue)) {
+      return;
+    }
+
+    update({
+      section: "vitals",
+      patch: {
+        temperatureUnit: nextUnit,
+        temperature: convertTemperature(currentValue, currentUnit, nextUnit),
+      },
+    });
+  };
+
   const vitals = data.vitals;
 
   const renderNumericField = (key: NumericVitalKey) => {
@@ -74,19 +102,6 @@ export default function VitalsSection() {
         />
       </Box>
     );
-  };
-
-  const changeTemperatureUnit = (nextUnit: TemperatureUnit) => {
-    if (nextUnit === vitals.temperatureUnit) return;
-
-    update({
-      section: "vitals",
-      patch: {
-        temperatureUnit: nextUnit,
-        // Avoid silently reinterpreting the existing measurement.
-        temperature: "",
-      },
-    });
   };
 
   return (
@@ -150,15 +165,13 @@ export default function VitalsSection() {
                   >
                     <ToggleButtonGroup
                       size="small"
+                      value={data.vitals.temperatureUnit}
                       exclusive
-                      value={vitals.temperatureUnit}
                       disabled={readOnly}
                       aria-label="Temperature unit"
-                      onChange={(_, nextUnit) => {
-                        if (nextUnit === "C" || nextUnit === "F") {
-                          changeTemperatureUnit(nextUnit);
-                        }
-                      }}
+                      onChange={(_, nextUnit: TemperatureUnit | null) =>
+                        handleTemperatureUnitChange(nextUnit)
+                      }
                       sx={{
                         height: 28,
                         "& .MuiToggleButton-root": {

@@ -1,62 +1,59 @@
-import { Box, Stack, Switch, Typography } from "@mui/material";
-import { FieldError } from "../components/FieldParts";
+import { Switch } from "@mui/material";
+
+interface ToggleSwitchProps {
+  id?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  ariaLabel: string;
+}
 
 export default function ToggleSwitch({
   id,
-  label,
   checked,
   onChange,
-  error,
-  readOnly = false,
-}: {
-  id: string;
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  error?: string;
-  readOnly?: boolean;
-}) {
+  disabled = false,
+  ariaLabel,
+}: ToggleSwitchProps) {
   return (
-    <Box sx={{ minWidth: 0 }}>
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          alignItems: "center",
-          justifyContent: "space-between",
-          bgcolor: "#EAF3FF",
-          borderRadius: "7px",
-          px: 1.2,
-          minHeight: 36,
-        }}
-      >
-        <Typography
-          component="label"
-          htmlFor={id}
-          sx={{
-            color: "#16355F",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-          }}
-        >
-          {label}
-        </Typography>
-
-        <Switch
-          id={id}
-          checked={checked}
-          onChange={(event) => onChange(event.target.checked)}
-          size="small"
-          disabled={readOnly}
-          slotProps={{
-            input: {
-              "aria-describedby": `${id}-helper`,
+    <Switch
+      checked={checked}
+      onChange={(event) => onChange(event.target.checked)}
+      disabled={disabled}
+      slotProps={{
+        input: {
+          id,
+          "aria-label": ariaLabel,
+        },
+      }}
+      size="small"
+      sx={{
+        width: 46,
+        height: 26,
+        p: 0,
+        "& .MuiSwitch-switchBase": {
+          p: "3px",
+          transitionDuration: "180ms",
+          "&.Mui-checked": {
+            transform: "translateX(20px)",
+            color: "#ffffff",
+            "& + .MuiSwitch-track": {
+              backgroundColor: "#2563eb",
+              opacity: 1,
             },
-          }}
-        />
-      </Stack>
-
-      <FieldError id={id} message={error} />
-    </Box>
+          },
+        },
+        "& .MuiSwitch-thumb": {
+          width: 20,
+          height: 20,
+          boxShadow: "0 1px 2px rgba(15, 23, 42, 0.2)",
+        },
+        "& .MuiSwitch-track": {
+          borderRadius: 13,
+          backgroundColor: "#b6c3d3",
+          opacity: 1,
+        },
+      }}
+    />
   );
 }

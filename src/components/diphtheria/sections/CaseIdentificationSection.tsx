@@ -1,255 +1,280 @@
+import { useEffect } from "react";
+
 import { Autocomplete, Box, TextField } from "@mui/material";
-import { FieldError, FieldLabel } from "../components/FieldParts";
+
 import {
   ETHNICITY_OPTIONS,
   IDENTIFICATION_FIELD_IDS as IDS,
-  IDENTIFICATION_REQUIRED as REQUIRED,
   OCCUPATION_SUGGESTIONS,
   PREGNANCY_STATUS_OPTIONS,
 } from "../constants/form.constants";
+
+import { FieldError, FieldLabel } from "../components/FieldParts";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
+
 import DateField from "../fields/DateField";
 import SelectField from "../fields/SelectField";
-import { ValidatedField } from "../fields/ValidatedField";
 
-const inputCellSx = {
+import {
+  isSchoolOccupation,
+  showAdultPregnancyFields,
+} from "../utils/demographics.utils";
+
+interface Props {
+  dateOfBirth?: string | null;
+  sex?: string | null;
+}
+
+const fieldSx = {
   minWidth: 0,
+  width: "100%",
   "& .MuiOutlinedInput-root": {
-    minHeight: 48,
+    minHeight: 42,
+    bgcolor: "#FFFFFF",
     borderRadius: "6px",
   },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#C9D9EF",
-  },
   "& .MuiInputBase-input": {
-    fontSize: "0.85rem",
+    fontSize: "0.875rem",
   },
-};
+} as const;
 
-interface OccupationFieldProps {
-  value: string | null;
-  onChange: (value: string | null) => void;
-  onBlur: () => void;
-  error?: string;
-  readOnly: boolean;
-}
+const occupations = [
+  ...new Set([...OCCUPATION_SUGGESTIONS, "Teacher", "Student"]),
+];
 
-function OccupationField({
-  value,
-  onChange,
-  onBlur,
-  error,
-  readOnly,
-}: OccupationFieldProps) {
-  return (
-    <Box sx={{ minWidth: 0 }}>
-      <FieldLabel id={IDS.occupation} required={REQUIRED.occupation}>
-        Occupation
-      </FieldLabel>
-
-      <Autocomplete<string, false, false, true>
-        id={IDS.occupation}
-        freeSolo
-        options={OCCUPATION_SUGGESTIONS}
-        value={value}
-        readOnly={readOnly}
-        onChange={(_, nextValue) => onChange(nextValue?.trim() || null)}
-        onInputChange={(_, text, reason) => {
-          if (reason === "input" || reason === "clear") {
-            onChange(text || null);
-          }
-        }}
-        onBlur={onBlur}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            size="small"
-            placeholder="Select or enter occupation"
-            error={Boolean(error)}
-            slotProps={{
-              ...params.slotProps,
-              htmlInput: {
-                ...params.slotProps.htmlInput,
-                "aria-describedby": `${IDS.occupation}-helper`,
-              },
-            }}
-          />
-        )}
-      />
-
-      <FieldError id={IDS.occupation} message={error} />
-    </Box>
-  );
-}
-
-export default function CaseIdentificationSection() {
+export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
   const { data, update, fieldError, markTouched, readOnly } =
     useDiphtheriaForm();
 
-  const values = data.identification;
+  const identification = data.identification;
+
+  const showSchool = isSchoolOccupation(identification.occupation);
+
+  const showAdultFields = showAdultPregnancyFields(dateOfBirth, sex);
+
+  // Clear fields that stop being applicable when
+  // the common-form demographic information changes.
+  // Do not erase prefilled values while DOB is unavailable.
+  useEffect(() => {
+    if (
+      dateOfBirth &&
+      !showAdultFields &&
+      (identification.pregnancyStatus || identification.motherName)
+    ) {
+      update({
+        section: "identification",
+        patch: {
+          pregnancyStatus: null,
+          motherName: "",
+        },
+      });
+    }
+  }, [
+    dateOfBirth,
+    showAdultFields,
+    identification.pregnancyStatus,
+    identification.motherName,
+    update,
+  ]);
+
+  const updateText = (key: "motherName" | "schoolName", value: string) => {
+    update({
+      section: "identification",
+      patch: { [key]: value },
+    });
+  };
 
   return (
     <Box
       sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0, 1fr)",
+          sm: "repeat(2, minmax(0, 1fr))",
+          lg: "repeat(3, minmax(0, 1fr))",
+        },
+        alignItems: "start",
+        gap: 2,
         px: { xs: 1.5, sm: 2 },
         py: 2,
         minWidth: 0,
       }}
     >
-      {/* FIRST ROW */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "minmax(0, 1fr)",
-            sm: "repeat(2, minmax(0, 1fr))",
-            md: "minmax(0, 5fr) minmax(0, 3fr) minmax(0, 3fr)",
-          },
-          columnGap: { xs: 1.5, sm: 2, md: 2.5 },
-          rowGap: 1.25,
-        }}
-      >
-        {/* Mother's name */}
-        <Box sx={inputCellSx}>
-          <ValidatedField
-            id={IDS.motherName}
-            label="Mother's name"
-            value={values.motherName}
-            onChange={(motherName) =>
+      {/* OCCUPATION */}
+      <Box sx={fieldSx}>
+        <FieldLabel id={IDS.occupation}>Occupation</FieldLabel>
+
+        <Autocomplete<string, false, false, true>
+          freeSolo
+          size="small"
+          fullWidth
+          readOnly={readOnly}
+          options={occupations}
+          value={identification.occupation ?? ""}
+          onInputChange={(_, input, reason) => {
+            if (reason === "input" || reason === "clear") {
               update({
                 section: "identification",
-                patch: { motherName },
-              })
+                patch: {
+                  occupation: input || null,
+                  ...(isSchoolOccupation(input) ? {} : { schoolName: "" }),
+                },
+              });
             }
-            onBlur={() => markTouched(IDS.motherName)}
-            error={fieldError(IDS.motherName)}
-            required={REQUIRED.motherName}
-            readOnly={readOnly}
-          />
-        </Box>
-
-        {/* Occupation */}
-        <Box sx={inputCellSx}>
-          <OccupationField
-            value={values.occupation}
-            onChange={(occupation) =>
-              update({
-                section: "identification",
-                patch: { occupation },
-              })
-            }
-            onBlur={() => markTouched(IDS.occupation)}
-            error={fieldError(IDS.occupation)}
-            readOnly={readOnly}
-          />
-        </Box>
-
-        {/* Ethnicity */}
-        <Box sx={inputCellSx}>
-          <SelectField
-            id={IDS.ethnicity}
-            label="Ethnicity"
-            value={values.ethnicity}
-            options={ETHNICITY_OPTIONS}
-            onChange={(ethnicity) =>
-              update({
-                section: "identification",
-                patch: { ethnicity },
-              })
-            }
-            onBlur={() => markTouched(IDS.ethnicity)}
-            error={fieldError(IDS.ethnicity)}
-            required={REQUIRED.ethnicity}
-            readOnly={readOnly}
-            placeholder="Select ethnicity"
-          />
-        </Box>
-      </Box>
-
-      {/* SECOND ROW */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "minmax(0, 1fr)",
-            sm: "repeat(2, minmax(0, 1fr))",
-            md: "minmax(0, 3fr) minmax(0, 2fr) minmax(0, 5.5fr)",
-          },
-          columnGap: { xs: 1.5, sm: 2, md: 2.5 },
-          rowGap: 1.25,
-          mt: { xs: 1.25, sm: 1.5, md: 1.75 },
-        }}
-      >
-        {/* Pregnancy status */}
-        <Box sx={inputCellSx}>
-          <SelectField
-            id={IDS.pregnancyStatus}
-            label="Pregnancy Status (Female ≥18 years)"
-            value={values.pregnancyStatus}
-            options={PREGNANCY_STATUS_OPTIONS}
-            onChange={(pregnancyStatus) =>
-              update({
-                section: "identification",
-                patch: { pregnancyStatus },
-              })
-            }
-            onBlur={() => markTouched(IDS.pregnancyStatus)}
-            error={fieldError(IDS.pregnancyStatus)}
-            required={REQUIRED.pregnancyStatus}
-            readOnly={readOnly}
-            placeholder="Select status"
-          />
-        </Box>
-
-        {/* Date of examination */}
-        <Box sx={inputCellSx}>
-          <DateField
-            id={IDS.examinationDate}
-            label="Date of examination"
-            value={values.examinationDate}
-            onChange={(examinationDate) =>
-              update({
-                section: "identification",
-                patch: { examinationDate },
-              })
-            }
-            onBlur={() => markTouched(IDS.examinationDate)}
-            error={fieldError(IDS.examinationDate)}
-            required={REQUIRED.examinationDate}
-            readOnly={readOnly}
-            noFuture
-          />
-        </Box>
-
-        {/* School name */}
-        <Box
-          sx={{
-            ...inputCellSx,
-            gridColumn: {
-              xs: "auto",
-              sm: "1 / -1",
-              md: "auto",
-            },
           }}
-        >
-          <ValidatedField
+          onChange={(_, option) => {
+            const occupation = typeof option === "string" ? option : null;
+
+            update({
+              section: "identification",
+              patch: {
+                occupation,
+                ...(isSchoolOccupation(occupation) ? {} : { schoolName: "" }),
+              },
+            });
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              id={IDS.occupation}
+              placeholder="Select or enter occupation"
+              error={Boolean(fieldError(IDS.occupation))}
+              onBlur={() => markTouched(IDS.occupation)}
+              slotProps={{
+                ...params.slotProps,
+                htmlInput: {
+                  ...params.slotProps.htmlInput,
+                  "aria-describedby": `${IDS.occupation}-helper`,
+                },
+              }}
+              sx={fieldSx}
+            />
+          )}
+        />
+
+        <FieldError id={IDS.occupation} message={fieldError(IDS.occupation)} />
+      </Box>
+
+      {/* ETHNICITY */}
+      <Box sx={fieldSx}>
+        <SelectField
+          id={IDS.ethnicity}
+          label="Ethnicity"
+          value={identification.ethnicity}
+          options={ETHNICITY_OPTIONS}
+          onChange={(ethnicity) =>
+            update({
+              section: "identification",
+              patch: { ethnicity },
+            })
+          }
+          onBlur={() => markTouched(IDS.ethnicity)}
+          error={fieldError(IDS.ethnicity)}
+          required
+          readOnly={readOnly}
+        />
+      </Box>
+
+      {/* EXAMINATION DATE */}
+      <Box sx={fieldSx}>
+        <DateField
+          id={IDS.examinationDate}
+          label="Date of Examination"
+          value={identification.examinationDate}
+          onChange={(examinationDate) =>
+            update({
+              section: "identification",
+              patch: { examinationDate },
+            })
+          }
+          onBlur={() => markTouched(IDS.examinationDate)}
+          error={fieldError(IDS.examinationDate)}
+          required
+          noFuture
+          readOnly={readOnly}
+        />
+      </Box>
+
+      {/* CONDITIONAL SCHOOL NAME */}
+      {showSchool && (
+        <Box sx={fieldSx}>
+          <FieldLabel id={IDS.schoolName}>School Name</FieldLabel>
+
+          <TextField
             id={IDS.schoolName}
-            label="School name (if applicable)"
-            placeholder="Enter school name"
-            value={values.schoolName}
-            onChange={(schoolName) =>
-              update({
-                section: "identification",
-                patch: { schoolName },
-              })
-            }
+            value={identification.schoolName}
+            onChange={(event) => updateText("schoolName", event.target.value)}
             onBlur={() => markTouched(IDS.schoolName)}
-            error={fieldError(IDS.schoolName)}
-            required={REQUIRED.schoolName}
-            readOnly={readOnly}
+            placeholder="Enter school name"
+            size="small"
+            fullWidth
+            error={Boolean(fieldError(IDS.schoolName))}
+            slotProps={{
+              htmlInput: {
+                readOnly,
+                "aria-describedby": `${IDS.schoolName}-helper`,
+              },
+            }}
+            sx={fieldSx}
+          />
+
+          <FieldError
+            id={IDS.schoolName}
+            message={fieldError(IDS.schoolName)}
           />
         </Box>
-      </Box>
+      )}
+
+      {/* COMMON-FORM DOB DEPENDENT FIELDS */}
+      {showAdultFields && (
+        <>
+          <Box sx={fieldSx}>
+            <SelectField
+              id={IDS.pregnancyStatus}
+              label="Pregnancy Status (Female ≥18 years)"
+              value={identification.pregnancyStatus}
+              options={PREGNANCY_STATUS_OPTIONS}
+              onChange={(pregnancyStatus) =>
+                update({
+                  section: "identification",
+                  patch: { pregnancyStatus },
+                })
+              }
+              onBlur={() => markTouched(IDS.pregnancyStatus)}
+              error={fieldError(IDS.pregnancyStatus)}
+              required
+              readOnly={readOnly}
+            />
+          </Box>
+
+          <Box sx={fieldSx}>
+            <FieldLabel id={IDS.motherName}>Mother's Name</FieldLabel>
+
+            <TextField
+              id={IDS.motherName}
+              value={identification.motherName}
+              onChange={(event) => updateText("motherName", event.target.value)}
+              onBlur={() => markTouched(IDS.motherName)}
+              placeholder="Enter mother's name"
+              size="small"
+              fullWidth
+              error={Boolean(fieldError(IDS.motherName))}
+              slotProps={{
+                htmlInput: {
+                  readOnly,
+                  "aria-describedby": `${IDS.motherName}-helper`,
+                },
+              }}
+              sx={fieldSx}
+            />
+
+            <FieldError
+              id={IDS.motherName}
+              message={fieldError(IDS.motherName)}
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 }

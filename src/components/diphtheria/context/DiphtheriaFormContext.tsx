@@ -7,20 +7,21 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
 import {
   createEmptyAntibioticRow,
   createInitialDiphtheriaData,
 } from "../constants/form.constants";
-import {
-  focusFirstInvalidField,
-  normalizeAntibioticRows,
-} from "../utils/form.utils";
+
+import { focusFirstInvalidField } from "../utils/form.utils";
+
 import {
   evaluateForm,
   runValidation,
   type ValidationResult,
   type ValidationRule,
 } from "../validation/form.validation";
+
 import type {
   AntibioticRow,
   BackgroundInformation,
@@ -35,14 +36,30 @@ import type {
   VaccinationHistory,
   Vitals,
 } from "../types/diphtheria.types";
+import { isSchoolOccupation } from "../utils/demographics.utils";
 
 type FormAction =
-  | { section: "identification"; patch: Partial<CaseIdentification> }
+  | {
+      section: "identification";
+      patch: Partial<CaseIdentification>;
+    }
   | { section: "vitals"; patch: Partial<Vitals> }
-  | { section: "background"; patch: Partial<BackgroundInformation> }
-  | { section: "vaccination"; patch: Partial<VaccinationHistory> }
-  | { section: "clinical"; patch: Partial<ClinicalDetails> }
-  | { section: "treatment"; patch: Partial<TreatmentInformation> };
+  | {
+      section: "background";
+      patch: Partial<BackgroundInformation>;
+    }
+  | {
+      section: "vaccination";
+      patch: Partial<VaccinationHistory>;
+    }
+  | {
+      section: "clinical";
+      patch: Partial<ClinicalDetails>;
+    }
+  | {
+      section: "treatment";
+      patch: Partial<TreatmentInformation>;
+    };
 
 interface FormValueContextType {
   data: DiphtheriaFormData;
@@ -64,8 +81,9 @@ interface FormActionsContextType {
     id: string,
     patch: Partial<Omit<AntibioticRow, "id">>,
   ) => void;
+  addAntibioticRow: () => void;
   removeAntibioticRow: (id: string) => void;
-  setTravelHistory: (data: unknown) => void;
+  setTravelHistory: (value: unknown) => void;
   markTouched: (id: string) => void;
   validateNow: () => ValidationResult;
 }
@@ -81,6 +99,7 @@ export interface DiphtheriaFormProviderProps {
 }
 
 const ValueContext = createContext<FormValueContextType | null>(null);
+
 const ActionsContext = createContext<FormActionsContextType | null>(null);
 
 function applyFormAction(
@@ -88,14 +107,21 @@ function applyFormAction(
   action: FormAction,
 ): DiphtheriaFormData {
   switch (action.section) {
-    case "identification":
-      return {
-        ...data,
-        identification: {
-          ...data.identification,
-          ...action.patch,
-        },
+    case "identification": {
+      const next = {
+        ...data.identification,
+        ...action.patch,
       };
+
+      if (
+        "occupation" in action.patch &&
+        !isSchoolOccupation(next.occupation)
+      ) {
+        next.schoolName = "";
+      }
+
+      return { ...data, identification: next };
+    }
 
     case "vitals":
       return {
@@ -107,22 +133,30 @@ function applyFormAction(
       };
 
     case "background": {
-      const next = { ...data.background, ...action.patch };
+      const next = {
+        ...data.background,
+        ...action.patch,
+      };
 
-      // Q1 controls Travel History and Questions 2–5.
       if (next.contactKnownCase !== "yes") {
         next.contactDetails = "";
-        next.travelHistory = null;
         next.householdSize = "";
         next.caregiversTreated = null;
-        next.similarIllnessInFamily = null;
+        next.travelHistory = null;
+
+        next.similarIllnessInFamily = "no";
         next.similarIllnessDetails = "";
-        next.healthcareVisit = null;
+
+        next.healthcareVisit = "no";
         next.healthcareVisitDate = "";
         next.healthcareFacility = null;
 
         return { ...data, background: next };
       }
+
+      // A visible switch begins in the OFF position.
+      next.similarIllnessInFamily ??= "no";
+      next.healthcareVisit ??= "no";
 
       if (next.similarIllnessInFamily !== "yes") {
         next.similarIllnessDetails = "";
@@ -137,15 +171,18 @@ function applyFormAction(
     }
 
     case "vaccination": {
-      const next = { ...data.vaccination, ...action.patch };
+      const next = {
+        ...data.vaccination,
+        ...action.patch,
+      };
 
-      if ("available" in action.patch && !next.available) {
+      if (!next.available) {
         next.source = null;
         next.doses = null;
         next.lastVaccinationDate = "";
       }
 
-      if ("doses" in action.patch && next.doses === 0) {
+      if (next.doses === 0) {
         next.lastVaccinationDate = "";
       }
 
@@ -162,15 +199,15 @@ function applyFormAction(
       };
 
     case "treatment": {
-      const next = { ...data.treatment, ...action.patch };
+      const next = {
+        ...data.treatment,
+        ...action.patch,
+      };
 
-      if (
-        "antibioticsAdministered" in action.patch &&
-        next.antibioticsAdministered !== "yes"
-      ) {
+      if (next.antibioticsAdministered !== "yes") {
         next.antibioticRows = [createEmptyAntibioticRow()];
-      } else if ("antibioticRows" in action.patch) {
-        next.antibioticRows = normalizeAntibioticRows(next.antibioticRows);
+      } else if (next.antibioticRows.length === 0) {
+        next.antibioticRows = [createEmptyAntibioticRow()];
       }
 
       return { ...data, treatment: next };
@@ -192,12 +229,11 @@ export function DiphtheriaFormProvider({
   );
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const data = value ?? internalData;
 
-  // Validation calculations can run while editing, but
-  // their messages are not displayed until Submit.
   const errors = useMemo(
     () => runValidation(data, validationRules),
     [data, validationRules],
@@ -228,6 +264,8 @@ export function DiphtheriaFormProvider({
       if (current.readOnly) return;
 
       const next = apply(current.data);
+
+      if (next === current.data) return;
 
       latest.current = {
         ...current,
@@ -272,10 +310,8 @@ export function DiphtheriaFormProvider({
         ...previous,
         treatment: {
           ...previous.treatment,
-          antibioticRows: normalizeAntibioticRows(
-            previous.treatment.antibioticRows.map((row) =>
-              row.id === id ? { ...row, ...patch } : row,
-            ),
+          antibioticRows: previous.treatment.antibioticRows.map((row) =>
+            row.id === id ? { ...row, ...patch } : row,
           ),
         },
       }));
@@ -283,17 +319,42 @@ export function DiphtheriaFormProvider({
     [mutate],
   );
 
-  const removeAntibioticRow = useCallback(
-    (id: string) => {
-      mutate((previous) => ({
+  // NEW: Explicit Add Row action.
+  const addAntibioticRow = useCallback(() => {
+    mutate((previous) => {
+      if (previous.treatment.antibioticsAdministered !== "yes") {
+        return previous;
+      }
+
+      return {
         ...previous,
         treatment: {
           ...previous.treatment,
-          antibioticRows: normalizeAntibioticRows(
-            previous.treatment.antibioticRows.filter((row) => row.id !== id),
-          ),
+          antibioticRows: [
+            ...previous.treatment.antibioticRows,
+            createEmptyAntibioticRow(),
+          ],
         },
-      }));
+      };
+    });
+  }, [mutate]);
+
+  const removeAntibioticRow = useCallback(
+    (id: string) => {
+      mutate((previous) => {
+        const rows = previous.treatment.antibioticRows.filter(
+          (row) => row.id !== id,
+        );
+
+        return {
+          ...previous,
+          treatment: {
+            ...previous.treatment,
+            antibioticRows:
+              rows.length > 0 ? rows : [createEmptyAntibioticRow()],
+          },
+        };
+      });
     },
     [mutate],
   );
@@ -317,8 +378,8 @@ export function DiphtheriaFormProvider({
     [mutate],
   );
 
-  // Retained for compatibility with the existing fields.
-  // A touched field no longer triggers validation styling.
+  // Retained for compatibility. Touching does not
+  // show error messages before Submit.
   const markTouched = useCallback((id: string) => {
     setTouched((previous) =>
       previous[id] ? previous : { ...previous, [id]: true },
@@ -326,15 +387,14 @@ export function DiphtheriaFormProvider({
   }, []);
 
   const validateNow = useCallback((): ValidationResult => {
-    const {
-      data: current,
-      rules,
-      implementedSections: implemented,
-    } = latest.current;
+    const current = latest.current;
 
-    const result = evaluateForm(current, rules, implemented);
+    const result = evaluateForm(
+      current.data,
+      current.rules,
+      current.implementedSections,
+    );
 
-    // Enable field-level error display only after Submit.
     setSubmitAttempted(true);
 
     if (!result.valid) {
@@ -344,11 +404,6 @@ export function DiphtheriaFormProvider({
     return result;
   }, []);
 
-  /**
-   * Only show a validation message after Submit Form.
-   * Once Submit has been attempted, errors update
-   * automatically whenever the corresponding value changes.
-   */
   const fieldError = useCallback(
     (id: string): string | undefined =>
       submitAttempted ? errors[id] : undefined,
@@ -381,6 +436,7 @@ export function DiphtheriaFormProvider({
       update,
       updateClinicalGroup,
       updateAntibioticRow,
+      addAntibioticRow,
       removeAntibioticRow,
       setTravelHistory,
       markTouched,
@@ -390,6 +446,7 @@ export function DiphtheriaFormProvider({
       update,
       updateClinicalGroup,
       updateAntibioticRow,
+      addAntibioticRow,
       removeAntibioticRow,
       setTravelHistory,
       markTouched,

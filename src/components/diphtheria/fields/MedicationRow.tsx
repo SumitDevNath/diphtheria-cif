@@ -1,4 +1,5 @@
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+
 import {
   Autocomplete,
   Box,
@@ -14,17 +15,17 @@ import {
 } from "@mui/material";
 
 import { FieldError } from "../components/FieldParts";
+
 import {
   ANTIBIOTIC_MEDICATION_OPTIONS,
   ANTIBIOTIC_ROUTE_OPTIONS,
   OTHER_MEDICATION,
   antibioticFieldId,
 } from "../constants/treatment.constants";
+
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
-import {
-  hasAntibioticContent,
-  normalizeMedicationName,
-} from "../utils/form.utils";
+import { normalizeMedicationName } from "../utils/form.utils";
+
 import DateField from "./DateField";
 
 import type {
@@ -36,6 +37,7 @@ interface MedicationRowProps {
   row: AntibioticRow;
   index: number;
   rows: readonly AntibioticRow[];
+  showRemove: boolean;
 }
 
 const inputSx = {
@@ -51,7 +53,7 @@ const inputSx = {
   },
   "& .MuiInputBase-input": {
     minWidth: 0,
-    fontSize: "0.75rem",
+    fontSize: "0.8125rem",
   },
 } as const;
 
@@ -62,7 +64,7 @@ function MobileCellLabel({ children }: { children: string }) {
         display: "block",
         mb: 0.5,
         color: "#17365F",
-        fontSize: "0.73rem",
+        fontSize: "0.75rem",
         fontWeight: 600,
         "@container (min-width: 900px)": {
           display: "none",
@@ -78,6 +80,7 @@ export default function MedicationRow({
   row,
   index,
   rows,
+  showRemove,
 }: MedicationRowProps) {
   const {
     readOnly,
@@ -94,31 +97,26 @@ export default function MedicationRow({
 
   const customMode = row.medicationOrigin === "custom";
 
-  // In custom mode, the medication error targets
-  // the actual custom text input, not the dropdown.
   const selectionId = customMode ? `${medicationId}-choice` : medicationId;
 
   const medicationError = fieldError(medicationId);
   const routeError = fieldError(routeId);
 
-  const updateRow = (patch: Partial<Omit<AntibioticRow, "id">>) => {
+  const updateRow = (patch: Partial<Omit<AntibioticRow, "id">>) =>
     updateAntibioticRow(row.id, patch);
-  };
 
-  const selectedElsewhere = new Set(
+  const usedMedications = new Set(
     rows
-      .filter(
-        (other) => other.id !== row.id && other.medication.trim().length > 0,
-      )
+      .filter((other) => other.id !== row.id && other.medication.trim())
       .map((other) => normalizeMedicationName(other.medication)),
   );
 
-  const availableMedications = ANTIBIOTIC_MEDICATION_OPTIONS.filter(
+  const options = ANTIBIOTIC_MEDICATION_OPTIONS.filter(
     (medication) =>
       medication === OTHER_MEDICATION ||
       (row.medicationOrigin === "predefined" &&
-        medication === row.medication) ||
-      !selectedElsewhere.has(normalizeMedicationName(medication)),
+        row.medication === medication) ||
+      !usedMedications.has(normalizeMedicationName(medication)),
   );
 
   const selectedMedication = customMode
@@ -126,8 +124,6 @@ export default function MedicationRow({
     : row.medicationOrigin === "predefined"
       ? row.medication || null
       : null;
-
-  const canRemove = !readOnly && hasAntibioticContent(row);
 
   return (
     <TableRow>
@@ -140,45 +136,42 @@ export default function MedicationRow({
 
           <Autocomplete<string, false, false, false>
             id={selectionId}
-            options={availableMedications}
-            value={selectedMedication}
-            readOnly={readOnly}
             size="small"
             fullWidth
+            readOnly={readOnly}
+            options={options}
+            value={selectedMedication}
             onChange={(_, selected) => {
               if (selected === OTHER_MEDICATION) {
                 updateRow({
                   medication: "",
                   medicationOrigin: "custom",
                 });
-              } else if (selected === null) {
-                updateRow({
-                  medication: "",
-                  medicationOrigin: null,
-                });
-              } else {
+              } else if (selected) {
                 updateRow({
                   medication: selected,
                   medicationOrigin: "predefined",
+                });
+              } else {
+                updateRow({
+                  medication: "",
+                  medicationOrigin: null,
                 });
               }
 
               markTouched(medicationId);
             }}
-            noOptionsText="No medications available"
             renderInput={(params) => (
               <TextField
                 {...params}
                 id={selectionId}
-                size="small"
-                placeholder="Medications"
+                placeholder="Select medication"
                 error={Boolean(medicationError)}
                 onBlur={() => markTouched(medicationId)}
                 slotProps={{
                   ...params.slotProps,
                   htmlInput: {
                     ...params.slotProps.htmlInput,
-                    "aria-label": `Medication selection for record ${index + 1}`,
                     "aria-describedby": `${medicationId}-helper`,
                   },
                 }}
@@ -190,6 +183,8 @@ export default function MedicationRow({
           {customMode && (
             <TextField
               id={medicationId}
+              size="small"
+              fullWidth
               value={row.medication}
               onChange={(event) =>
                 updateRow({
@@ -199,13 +194,10 @@ export default function MedicationRow({
               }
               onBlur={() => markTouched(medicationId)}
               placeholder="Enter medication name"
-              size="small"
-              fullWidth
               error={Boolean(medicationError)}
               slotProps={{
                 htmlInput: {
                   readOnly,
-                  "aria-label": `Custom medication for record ${index + 1}`,
                   "aria-describedby": `${medicationId}-helper`,
                 },
               }}
@@ -225,7 +217,7 @@ export default function MedicationRow({
         <Box sx={{ minWidth: 0 }}>
           <MobileCellLabel>Administration route</MobileCellLabel>
 
-          <FormControl fullWidth size="small" error={Boolean(routeError)}>
+          <FormControl size="small" fullWidth error={Boolean(routeError)}>
             <Select<AdministrationRoute | "">
               id={routeId}
               value={row.administrationRoute ?? ""}
@@ -237,42 +229,23 @@ export default function MedicationRow({
                 })
               }
               onBlur={() => markTouched(routeId)}
-              aria-label={`Administration route for record ${index + 1}`}
+              aria-label={`Administration route ${index + 1}`}
               aria-describedby={`${routeId}-helper`}
-              renderValue={(selected) => {
-                if (selected === "") {
-                  return (
-                    <Typography
-                      component="span"
-                      sx={{
-                        color: "#8C9DB1",
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      Route
-                    </Typography>
-                  );
-                }
-
-                return (
-                  ANTIBIOTIC_ROUTE_OPTIONS.find(
-                    (option) => option.value === selected,
-                  )?.label ?? selected
-                );
-              }}
+              renderValue={(value) =>
+                value
+                  ? (ANTIBIOTIC_ROUTE_OPTIONS.find(
+                      (option) => option.value === value,
+                    )?.label ?? value)
+                  : "Select route"
+              }
               sx={{
                 bgcolor: "#FFFFFF",
                 borderRadius: "6px",
                 minHeight: 39,
-                fontSize: "0.75rem",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#C9D9EF",
-                },
+                fontSize: "0.8125rem",
               }}
             >
-              <MenuItem value="">
-                <em>Select route</em>
-              </MenuItem>
+              <MenuItem value="">Select route</MenuItem>
 
               {ANTIBIOTIC_ROUTE_OPTIONS.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -325,27 +298,37 @@ export default function MedicationRow({
         </Box>
       </TableCell>
 
-      {/* REMOVE RECORD */}
-      <TableCell
-        sx={{
-          textAlign: "center",
-          verticalAlign: "middle",
-        }}
-      >
-        <Tooltip title="Remove medication record">
-          <span>
-            <IconButton
-              size="small"
-              color="error"
-              disabled={!canRemove}
-              onClick={() => removeAntibioticRow(row.id)}
-              aria-label={`Remove medication record ${index + 1}`}
-            >
-              <DeleteOutlinedIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
-      </TableCell>
+      {/* REMOVE BUTTON: MULTIPLE ROWS ONLY */}
+      {showRemove && (
+        <TableCell
+          sx={{
+            position: "absolute",
+            top: 4,
+            right: 4,
+            width: "auto",
+            textAlign: "center",
+            "@container (min-width: 900px)": {
+              position: "static",
+              width: "7%",
+            },
+          }}
+        >
+          <Tooltip title="Remove medication record">
+            <span>
+              <IconButton
+                type="button"
+                size="small"
+                color="error"
+                disabled={readOnly}
+                onClick={() => removeAntibioticRow(row.id)}
+                aria-label={`Remove medication record ${index + 1}`}
+              >
+                <DeleteOutlinedIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </TableCell>
+      )}
     </TableRow>
   );
 }

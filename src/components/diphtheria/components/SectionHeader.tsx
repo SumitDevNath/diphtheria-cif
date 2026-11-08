@@ -1,24 +1,20 @@
-import { Box, Paper, Typography } from "@mui/material";
 import type { ReactNode } from "react";
-import {
-  CIF_FONT_SIZES,
-  CIF_FONT_WEIGHTS,
-} from "../constants/typography.constants";
+import { Box, Paper, Typography } from "@mui/material";
 
 interface SectionHeaderProps {
   id: string;
   title: string;
   number?: string | null;
-  children?: ReactNode;
   rightContent?: ReactNode;
+  children?: ReactNode;
 }
 
 export default function SectionHeader({
   id,
   title,
   number,
-  children,
   rightContent,
+  children,
 }: SectionHeaderProps) {
   return (
     <Paper
@@ -36,15 +32,21 @@ export default function SectionHeader({
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: rightContent ? "space-between" : "flex-start",
-          flexWrap: rightContent ? "wrap" : "nowrap",
-          gap: 1,
+          flexDirection: {
+            xs: "column",
+            md: "row",
+          },
+          alignItems: {
+            xs: "stretch",
+            md: id === "clinical" ? "flex-start" : "center",
+          },
+          justifyContent: id === "clinical" ? "flex-start" : "space-between",
+          columnGap: id === "clinical" ? 5 : 2.5,
           minHeight: 48,
           px: { xs: 1.5, sm: 2 },
-          py: 1.25,
-          bgcolor: rightContent ? "#FFFFFF" : "#F6F9FE",
-          borderBottom: rightContent ? "1px solid #DCE6F3" : "none",
+          pt: id === "clinical" ? 0.75 : 1.25,
+          pb: id === "clinical" ? 1 : 1.25,
+          bgcolor: "#F6F9FE",
         }}
       >
         <Box
@@ -53,9 +55,12 @@ export default function SectionHeader({
             alignItems: "center",
             gap: 1,
             minWidth: 0,
+            minHeight: {
+              md: id === "clinical" ? 42 : undefined,
+            },
           }}
         >
-          {/* {number && (
+          {number && (
             <Box
               sx={{
                 display: "grid",
@@ -72,15 +77,15 @@ export default function SectionHeader({
             >
               {number}
             </Box>
-          )} */}
+          )}
 
           <Typography
             id={`${id}-heading`}
             component="h2"
             sx={{
               color: "#0A2850",
-              fontSize: CIF_FONT_SIZES.sectionHeading,
-              fontWeight: CIF_FONT_WEIGHTS.sectionHeading,
+              fontSize: "1rem",
+              fontWeight: 700,
               lineHeight: 1.5,
             }}
           >
@@ -92,7 +97,13 @@ export default function SectionHeader({
           <Box
             sx={{
               minWidth: 0,
-              maxWidth: "100%",
+              display: "flex",
+              alignItems: {
+                xs: "center",
+                md: id === "clinical" ? "flex-start" : "center",
+              },
+              justifyContent: "flex-start",
+              flexShrink: { md: 0 },
             }}
           >
             {rightContent}

@@ -29,7 +29,7 @@ export function FieldLabel({
       }}
     >
       {children}
-      {/* {required ? " *" : ""} */}
+      {required ? " *" : ""}
     </FormLabel>
   );
 }
@@ -41,24 +41,23 @@ export function FieldError({
   id: string;
   message?: string | null;
 }) {
-  const hasError = Boolean(message);
+  if (!message) return null;
 
   return (
     <FormHelperText
       id={`${id}-helper`}
-      error={hasError}
-      role={hasError ? "alert" : undefined}
+      error
+      role="alert"
       sx={{
         mx: 0,
-        mt: 0.35,
-        minHeight: 17,
-        fontSize: "0.69rem",
+        mt: 0.5,
+        fontSize: "0.75rem",
         lineHeight: 1.35,
         whiteSpace: "normal",
         overflowWrap: "anywhere",
       }}
     >
-      {message || " "}
+      {message}
     </FormHelperText>
   );
 }

@@ -59,61 +59,6 @@ export default function ClinicalDetailsSection({
         boxSizing: "border-box",
       }}
     >
-      {/* DATE OF ONSET */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          alignItems: { xs: "stretch", sm: "flex-start" },
-          flexWrap: "wrap",
-          gap: { xs: 0.5, sm: 1.5 },
-          mb: 1.75,
-          minWidth: 0,
-        }}
-      >
-        <Typography
-          component="label"
-          htmlFor={IDS.onsetDate}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            minHeight: 40,
-            color: "#17365F",
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            lineHeight: 1.5,
-          }}
-        >
-          Date of onset of fever and sore throat
-        </Typography>
-
-        <Box
-          sx={{
-            ...inputCellSx,
-            width: { xs: "100%", sm: 205 },
-            maxWidth: "100%",
-          }}
-        >
-          <DateField
-            id={IDS.onsetDate}
-            label="Date of onset of fever and sore throat"
-            hideLabel
-            value={clinical.onsetDate}
-            onChange={(onsetDate) =>
-              update({
-                section: "clinical",
-                patch: { onsetDate },
-              })
-            }
-            onBlur={() => markTouched(IDS.onsetDate)}
-            error={fieldError(IDS.onsetDate)}
-            required={REQUIRED.onsetDate}
-            readOnly={readOnly}
-            noFuture
-          />
-        </Box>
-      </Box>
-
       {/* FOUR CLINICAL CHECKBOX GROUPS */}
       <Box
         sx={{

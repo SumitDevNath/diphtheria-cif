@@ -5,8 +5,11 @@ import { Box, Stack, Typography } from "@mui/material";
 import { FieldError } from "./components/FieldParts";
 import FormJsonPreview from "./components/FormJsonPreview";
 import FormSubmit from "./components/FormSubmit";
+
 import type { DiphtheriaSubmitHandler } from "./components/FormSubmit";
+
 import SectionHeader from "./components/SectionHeader";
+import ClinicalOnsetHeaderField from "./components/ClinicalOnsetHeaderField";
 
 import { SECTION_DEFINITIONS } from "./constants/form.constants";
 
@@ -25,7 +28,11 @@ import type {
 
 import CaseIdentificationSection from "./sections/CaseIdentificationSection";
 import ClinicalDetailsSection from "./sections/ClinicalDetailsSection";
-import TreatmentInformationSection from "./sections/TreatmentInformationSection";
+
+import TreatmentInformationSection, {
+  AntibioticTherapySwitch,
+} from "./sections/TreatmentInformationSection";
+
 import VitalsSection from "./sections/VitalsSection";
 
 import VaccinationHistorySection, {
@@ -35,8 +42,11 @@ import VaccinationHistorySection, {
 import type { FacilityOption, FormSectionKey } from "./types/diphtheria.types";
 
 import { BACKGROUND_VALIDATION_RULES } from "./validation/background.validation";
+
 import { CLINICAL_VALIDATION_RULES } from "./validation/clinical.validation";
-import { IDENTIFICATION_VALIDATION_RULES } from "./validation/identification.validation";
+
+import { createIdentificationValidationRules } from "./validation/identification.validation";
+
 import { TREATMENT_VALIDATION_RULES } from "./validation/treatment.validation";
 
 import {
@@ -46,6 +56,7 @@ import {
 } from "./validation/travel.integration.validation";
 
 import { VACCINATION_VALIDATION_RULES } from "./validation/vaccination.validation";
+
 import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 
 export interface DiphtheriaInvestigationFormProps extends Omit<
@@ -58,6 +69,10 @@ export interface DiphtheriaInvestigationFormProps extends Omit<
 
   renderTravelHistory?: TravelHistoryRenderer;
   validateTravelHistory?: TravelHistoryValidator;
+
+  // Values supplied by the shared NDSS registration form.
+  dateOfBirth?: string | null;
+  sex?: string | null;
 
   showJsonPreview?: boolean;
   onSubmit?: DiphtheriaSubmitHandler;
@@ -91,8 +106,8 @@ function TravelHistorySlot({
       aria-invalid={Boolean(error)}
       aria-describedby={error ? `${TRAVEL_HISTORY_FIELD_ID}-helper` : undefined}
       sx={{
-        minWidth: 0,
         width: "100%",
+        minWidth: 0,
         borderRadius: "6px",
         outline: error ? "1px solid" : "none",
         outlineColor: "error.main",
@@ -107,16 +122,13 @@ function TravelHistorySlot({
           sx={{
             color: "#718096",
             fontSize: "0.78rem",
-            lineHeight: 1.6,
           }}
         >
-          The external Travel History module has not yet been integrated. Its
-          existing implementation will be connected here during NDSS
-          integration.
+          The external Travel History module has not yet been integrated.
         </Typography>
       )}
 
-      {error && <FieldError id={TRAVEL_HISTORY_FIELD_ID} message={error} />}
+      <FieldError id={TRAVEL_HISTORY_FIELD_ID} message={error} />
     </Box>
   );
 }
@@ -136,9 +148,21 @@ export default function DiphtheriaInvestigationForm({
   renderTravelHistory,
   validateTravelHistory,
 
+  dateOfBirth,
+  sex,
+
   showJsonPreview = false,
 }: DiphtheriaInvestigationFormProps): ReactNode {
-  const travelHistoryRule = useMemo(
+  const identificationRules = useMemo(
+    () =>
+      createIdentificationValidationRules({
+        dateOfBirth,
+        sex,
+      }),
+    [dateOfBirth, sex],
+  );
+
+  const travelRule = useMemo(
     () =>
       createTravelHistoryValidationRule({
         hasRenderer: Boolean(renderTravelHistory),
@@ -149,16 +173,16 @@ export default function DiphtheriaInvestigationForm({
 
   const rules = useMemo(
     () => [
-      ...IDENTIFICATION_VALIDATION_RULES,
+      ...identificationRules,
       ...VITALS_VALIDATION_RULES,
       ...BACKGROUND_VALIDATION_RULES,
-      travelHistoryRule,
+      travelRule,
       ...VACCINATION_VALIDATION_RULES,
       ...CLINICAL_VALIDATION_RULES,
       ...TREATMENT_VALIDATION_RULES,
       ...(validationRules ?? []),
     ],
-    [travelHistoryRule, validationRules],
+    [identificationRules, travelRule, validationRules],
   );
 
   const renderTravelSlot = useCallback(
@@ -192,8 +216,8 @@ export default function DiphtheriaInvestigationForm({
           aria-label="Diphtheria Case Investigation Form"
           spacing={1.5}
           sx={{
-            width: "100%",
             minWidth: 0,
+            width: "100%",
           }}
         >
           {SECTION_DEFINITIONS.map(({ id, title, number }) => (
@@ -205,11 +229,18 @@ export default function DiphtheriaInvestigationForm({
               rightContent={
                 id === "vaccination" ? (
                   <VaccinationAvailabilitySwitch />
+                ) : id === "clinical" ? (
+                  <ClinicalOnsetHeaderField />
+                ) : id === "treatment" ? (
+                  <AntibioticTherapySwitch />
                 ) : undefined
               }
             >
               {id === "identification" ? (
-                <CaseIdentificationSection />
+                <CaseIdentificationSection
+                  dateOfBirth={dateOfBirth}
+                  sex={sex}
+                />
               ) : id === "vitals" ? (
                 <VitalsSection />
               ) : id === "background" ? (

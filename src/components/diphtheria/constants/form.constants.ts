@@ -140,9 +140,9 @@ export function createInitialDiphtheriaData(): DiphtheriaFormData {
       contactDetails: "",
       householdSize: "",
       caregiversTreated: null,
-      similarIllnessInFamily: null,
+      similarIllnessInFamily: "no",
       similarIllnessDetails: "",
-      healthcareVisit: null,
+      healthcareVisit: "no",
       healthcareVisitDate: "",
       healthcareFacility: null,
       travelHistory: null,
@@ -165,7 +165,7 @@ export function createInitialDiphtheriaData(): DiphtheriaFormData {
       hospitalRecordNumber: "",
     },
     treatment: {
-      antibioticsAdministered: null,
+      antibioticsAdministered: "no",
       antibioticRows: [createEmptyAntibioticRow()],
     },
   };

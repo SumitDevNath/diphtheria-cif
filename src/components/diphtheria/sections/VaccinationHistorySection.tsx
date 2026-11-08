@@ -1,4 +1,4 @@
-import { Box, FormControlLabel, Switch, Typography } from "@mui/material";
+import { Box, FormControlLabel, Typography } from "@mui/material";
 import {
   VACCINATION_DOSE_LABEL,
   VACCINATION_DOSE_OPTIONS,
@@ -13,6 +13,7 @@ import {
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 import DateField from "../fields/DateField";
 import SelectField from "../fields/SelectField";
+import ToggleSwitch from "../fields/ToggleSwitch";
 
 const fieldCellSx = {
   minWidth: 0,
@@ -68,25 +69,17 @@ export function VaccinationAvailabilitySwitch() {
         </Typography>
       }
       control={
-        <Switch
+        <ToggleSwitch
           id={IDS.available}
-          size="small"
           checked={data.vaccination.available}
           disabled={readOnly}
-          onChange={(event) =>
+          ariaLabel="Vaccination history available?"
+          onChange={(available) =>
             update({
               section: "vaccination",
-              patch: {
-                available: event.target.checked,
-              },
+              patch: { available },
             })
           }
-          slotProps={{
-            input: {
-              "aria-label": "Vaccination history available?",
-              "aria-controls": "vaccination-history-fields",
-            },
-          }}
         />
       }
       sx={{

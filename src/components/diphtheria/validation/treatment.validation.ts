@@ -3,13 +3,9 @@ import {
   OTHER_MEDICATION,
   PREDEFINED_MEDICATIONS,
   TREATMENT_FIELD_IDS as IDS,
-  TREATMENT_REQUIRED as REQUIRED,
 } from "../constants/treatment.constants";
 
-import {
-  hasAntibioticContent,
-  normalizeMedicationName,
-} from "../utils/form.utils";
+import { normalizeMedicationName } from "../utils/form.utils";
 
 import { dmyToIso, validateDateText } from "../utils/date.utils";
 
@@ -17,134 +13,76 @@ import type { AntibioticRow, FormFieldErrors } from "../types/diphtheria.types";
 
 import type { ValidationRule } from "./form.validation";
 
-function validateMedication(row: AntibioticRow): string | null {
-  const medication = row.medication.trim();
-
-  if (!medication) {
-    if (!REQUIRED.medication) return null;
-
-    return row.medicationOrigin === "custom"
-      ? "Enter the custom medication name."
-      : "Select a medication.";
-  }
-
-  if (medication === OTHER_MEDICATION) {
-    return "Enter the actual medication name.";
-  }
-
-  if (row.medicationOrigin === null) {
-    return "Select or specify the medication.";
-  }
-
-  if (
-    row.medicationOrigin === "predefined" &&
-    !PREDEFINED_MEDICATIONS.includes(medication)
-  ) {
-    return "Select a valid medication.";
-  }
-
-  if (
-    row.medicationOrigin !== "predefined" &&
-    row.medicationOrigin !== "custom"
-  ) {
-    return "Select a valid medication type.";
-  }
-
-  return null;
-}
-
-function validateAntibioticRows(
-  rows: readonly AntibioticRow[],
-): FormFieldErrors {
+function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
   const errors: FormFieldErrors = {};
 
-  const activeRows = rows.filter(hasAntibioticContent);
-
-  /**
-   * If there are no active rows, validate the first
-   * empty row so its four controls receive errors.
-   *
-   * If active rows exist, ignore the automatically
-   * maintained trailing empty row.
-   */
-  const rowsToValidate = activeRows.length > 0 ? activeRows : rows.slice(0, 1);
-
-  if (rowsToValidate.length === 0) {
-    errors[IDS.antibioticRows] = "Add at least one antibiotic therapy record.";
-
+  if (rows.length === 0) {
+    errors[IDS.antibioticRows] = "Add an antibiotic therapy record.";
     return errors;
   }
 
-  const firstMedicationByName = new Map<string, string>();
+  const seen = new Map<string, string>();
 
-  for (const row of rowsToValidate) {
+  for (const row of rows) {
     const medicationId = antibioticFieldId(row.id, "medication");
-
     const routeId = antibioticFieldId(row.id, "administrationRoute");
-
     const startId = antibioticFieldId(row.id, "startDate");
-
     const endId = antibioticFieldId(row.id, "endDate");
 
-    // MEDICATION
-    const medicationError = validateMedication(row);
+    const medication = row.medication.trim();
 
-    if (medicationError) {
-      errors[medicationId] = medicationError;
+    if (!medication) {
+      errors[medicationId] =
+        row.medicationOrigin === "custom"
+          ? "Enter the custom medication name."
+          : "Select a medication.";
+    } else if (medication === OTHER_MEDICATION) {
+      errors[medicationId] = "Specify the actual medication.";
+    } else if (row.medicationOrigin === null) {
+      errors[medicationId] = "Select or specify the medication.";
+    } else if (
+      row.medicationOrigin === "predefined" &&
+      !PREDEFINED_MEDICATIONS.includes(medication)
+    ) {
+      errors[medicationId] = "Select a valid medication.";
     } else {
-      const normalized = normalizeMedicationName(row.medication);
+      const name = normalizeMedicationName(medication);
+      const previousId = seen.get(name);
 
-      const previousField = firstMedicationByName.get(normalized);
-
-      if (previousField) {
-        errors[medicationId] = "This medication is already recorded.";
-
-        errors[previousField] = "This medication is entered more than once.";
+      if (previousId) {
+        errors[previousId] = "This medication is duplicated.";
+        errors[medicationId] = "This medication is duplicated.";
       } else {
-        firstMedicationByName.set(normalized, medicationId);
+        seen.set(name, medicationId);
       }
     }
 
-    // ADMINISTRATION ROUTE
-    if (row.administrationRoute === null) {
-      if (REQUIRED.administrationRoute) {
-        errors[routeId] = "Select an administration route.";
-      }
+    if (!row.administrationRoute) {
+      errors[routeId] = "Select an administration route.";
     } else if (!["oral", "iv", "im"].includes(row.administrationRoute)) {
-      errors[routeId] = "Select a valid administration route.";
+      errors[routeId] = "Select a valid route.";
     }
 
-    // START DATE
     if (!row.startDate.trim()) {
-      if (REQUIRED.startDate) {
-        errors[startId] = "Start date is required.";
-      }
+      errors[startId] = "Start date is required.";
     } else {
-      const startError = validateDateText(row.startDate, { noFuture: true });
+      const message = validateDateText(row.startDate, { noFuture: true });
 
-      if (startError) {
-        errors[startId] = startError;
-      }
+      if (message) errors[startId] = message;
     }
 
-    // END DATE
     if (!row.endDate.trim()) {
-      if (REQUIRED.endDate) {
-        errors[endId] = "End date is required.";
-      }
+      errors[endId] = "End date is required.";
     } else {
-      const endError = validateDateText(row.endDate, { noFuture: true });
+      const message = validateDateText(row.endDate, { noFuture: true });
 
-      if (endError) {
-        errors[endId] = endError;
-      }
+      if (message) errors[endId] = message;
     }
 
-    // DATE ORDER
-    const startIso = dmyToIso(row.startDate);
-    const endIso = dmyToIso(row.endDate);
+    const start = dmyToIso(row.startDate);
+    const end = dmyToIso(row.endDate);
 
-    if (startIso && endIso && endIso < startIso && !errors[endId]) {
+    if (start && end && end < start && !errors[endId]) {
       errors[endId] = "End date cannot precede start date.";
     }
   }
@@ -155,22 +93,15 @@ function validateAntibioticRows(
 export const TREATMENT_VALIDATION_RULES: readonly ValidationRule[] = [
   {
     id: IDS.antibioticsAdministered,
-    validate: ({ treatment }) => {
-      const answer = treatment.antibioticsAdministered;
-
-      if (answer === null) {
-        return REQUIRED.antibioticsAdministered ? "Select Yes or No." : null;
-      }
-
-      return answer === "yes" || answer === "no"
+    validate: ({ treatment }) =>
+      treatment.antibioticsAdministered === "yes" ||
+      treatment.antibioticsAdministered === "no" ||
+      treatment.antibioticsAdministered === null
         ? null
-        : "Select a valid response.";
-    },
+        : "Select a valid therapy response.",
   },
   {
     when: ({ treatment }) => treatment.antibioticsAdministered === "yes",
-
-    validateFields: ({ treatment }) =>
-      validateAntibioticRows(treatment.antibioticRows),
+    validateFields: ({ treatment }) => validateRows(treatment.antibioticRows),
   },
 ];
