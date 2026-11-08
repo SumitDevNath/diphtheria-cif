@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python backend
+diphtheria-backend/.venv/
+diphtheria-backend/__pycache__/
+diphtheria-backend/**/__pycache__/
+diphtheria-backend/.env
+diphtheria-backend/.env.*
+!diphtheria-backend/.env.example
