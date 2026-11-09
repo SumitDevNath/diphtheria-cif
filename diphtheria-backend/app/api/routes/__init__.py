@@ -1,0 +1,2 @@
+
+"""Investigation API routes."""

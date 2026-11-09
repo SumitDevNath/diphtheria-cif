@@ -1,5 +1,5 @@
 
-"""Diphtheria CIF persistence models; field validation follows in Phase 4."""
+"""Diphtheria CIF persistence models; conditional validation is in Phase 4."""
 
 from __future__ import annotations
 
@@ -28,7 +28,6 @@ from app.db.base import Base
 
 
 def empty_clinical_selections() -> dict[str, dict[str, Any]]:
-    """Return distinct mutable JSON objects for each new investigation."""
     return {
         key: {
             "selected": [],
@@ -46,21 +45,19 @@ def empty_clinical_selections() -> dict[str, dict[str, Any]]:
 
 
 class DiphtheriaInvestigation(Base):
-    """One record holds the six existing sections except repeated therapy rows."""
+    """One record for six sections, with antibiotic rows in a separate table."""
 
     __tablename__ = "diphtheria_investigations"
 
     __table_args__ = (
         CheckConstraint(
-            "identification_ethnicity IS NULL OR "
-            "identification_ethnicity IN "
+            "identification_ethnicity IS NULL OR identification_ethnicity IN "
             "('bengali', 'tribal-national', 'non-national')",
             name="ck_diph_ethnicity",
         ),
         CheckConstraint(
             "identification_pregnancy_status IS NULL OR "
-            "identification_pregnancy_status IN "
-            "('pregnant', 'non-pregnant')",
+            "identification_pregnancy_status IN ('pregnant', 'non-pregnant')",
             name="ck_diph_pregnancy_status",
         ),
         CheckConstraint(
@@ -68,15 +65,13 @@ class DiphtheriaInvestigation(Base):
             name="ck_diph_temperature_unit",
         ),
         CheckConstraint(
-            "vitals_avpu IS NULL OR "
-            "vitals_avpu IN "
+            "vitals_avpu IS NULL OR vitals_avpu IN "
             "('alert', 'voice', 'pain', 'unresponsive')",
             name="ck_diph_avpu",
         ),
         CheckConstraint(
             "background_contact_known_case IS NULL OR "
-            "background_contact_known_case IN "
-            "('yes', 'no', 'unknown')",
+            "background_contact_known_case IN ('yes', 'no', 'unknown')",
             name="ck_diph_contact_known_case",
         ),
         CheckConstraint(
@@ -142,13 +137,15 @@ class DiphtheriaInvestigation(Base):
     )
     identification_occupation: Mapped[str | None] = mapped_column(Text)
     identification_ethnicity: Mapped[str | None] = mapped_column(String(24))
-    identification_pregnancy_status: Mapped[str | None] = mapped_column(String(16))
+    identification_pregnancy_status: Mapped[str | None] = mapped_column(
+        String(16)
+    )
     identification_examination_date: Mapped[date | None] = mapped_column(Date)
     identification_school_name: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
 
-    # Vitals: retain input text until service-level validation.
+    # Vitals
     vitals_heart_rate: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
@@ -185,26 +182,22 @@ class DiphtheriaInvestigation(Base):
     background_caregivers_treated: Mapped[str | None] = mapped_column(
         String(16)
     )
-    background_similar_illness_in_family: Mapped[str] = mapped_column(
+    background_similar_illness_in_family: Mapped[str | None] = mapped_column(
         String(3),
-        nullable=False,
-        default="no",
-        server_default=text("'no'"),
+        nullable=True,
     )
     background_similar_illness_details: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
-    background_healthcare_visit: Mapped[str] = mapped_column(
+    background_healthcare_visit: Mapped[str | None] = mapped_column(
         String(3),
-        nullable=False,
-        default="no",
-        server_default=text("'no'"),
+        nullable=True,
     )
     background_healthcare_visit_date: Mapped[date | None] = mapped_column(Date)
     background_healthcare_facility_id: Mapped[str | None] = mapped_column(Text)
     background_healthcare_facility_name: Mapped[str | None] = mapped_column(Text)
 
-    # The Travel History data contract belongs to the external NDSS module.
+    # The Travel History schema remains external and opaque.
     background_travel_history: Mapped[Any | None] = mapped_column(JSONB)
 
     # Vaccination
@@ -216,17 +209,17 @@ class DiphtheriaInvestigation(Base):
     )
     vaccination_source: Mapped[str | None] = mapped_column(String(16))
     vaccination_doses: Mapped[int | None] = mapped_column(Integer)
-    vaccination_last_vaccination_date: Mapped[date | None] = mapped_column(Date)
+    vaccination_last_vaccination_date: Mapped[date | None] = mapped_column(
+        Date
+    )
 
     # Clinical
     clinical_onset_date: Mapped[date | None] = mapped_column(Date)
-
     clinical_selections: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
         default=empty_clinical_selections,
     )
-
     clinical_hospital_id: Mapped[str | None] = mapped_column(Text)
     clinical_hospital_name: Mapped[str | None] = mapped_column(Text)
     clinical_visit_date: Mapped[date | None] = mapped_column(Date)
@@ -238,9 +231,7 @@ class DiphtheriaInvestigation(Base):
     # Treatment
     treatment_antibiotics_administered: Mapped[str | None] = mapped_column(
         String(3),
-        default="no",
     )
-
     antibiotic_rows: Mapped[list[AntibioticTherapy]] = relationship(
         back_populates="investigation",
         cascade="all, delete-orphan",
@@ -251,7 +242,7 @@ class DiphtheriaInvestigation(Base):
 
 
 class AntibioticTherapy(Base):
-    """One frontend antibiotic row with a stable UUID and display order."""
+    """One repeated therapy record; preserve frontend-provided stable UUID."""
 
     __tablename__ = "diphtheria_antibiotic_therapies"
 
@@ -291,23 +282,14 @@ class AntibioticTherapy(Base):
         primary_key=True,
     )
 
-    # Preserve the frontend antibiotic row UUID.
     id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         primary_key=True,
     )
-
-    position: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-    )
-
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
     medication: Mapped[str] = mapped_column(
-        Text,
-        nullable=False,
-        default="",
+        Text, nullable=False, default=""
     )
-
     medication_origin: Mapped[str | None] = mapped_column(String(12))
     administration_route: Mapped[str | None] = mapped_column(String(8))
     start_date: Mapped[date | None] = mapped_column(Date)
@@ -318,8 +300,6 @@ class AntibioticTherapy(Base):
     )
 
 
-# Prevent duplicate medication names within one investigation.
-# Allow empty placeholder rows while saving drafts.
 Index(
     "uq_diph_abx_medication_normalized",
     AntibioticTherapy.investigation_id,
