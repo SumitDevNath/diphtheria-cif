@@ -1,7 +1,7 @@
 FastAPI
 Pydantic
 Uvicorn
-SQLAlchemy
+SQLAlchemy[asyncio]
 alembic
 psycopg[binary]
 pydantic-settings

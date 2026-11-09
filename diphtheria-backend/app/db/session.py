@@ -1,17 +1,22 @@
-"""Synchronous SQLAlchemy engine and session dependencies."""
 
-from collections.abc import Generator
+"""Async SQLAlchemy connection and session dependencies."""
+
+from collections.abc import AsyncGenerator
 from functools import lru_cache
 
-from sqlalchemy import Engine, create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from app.core.config import Settings, get_settings
 
 
 def build_database_url(settings: Settings) -> URL:
-    """Build a safe URL without manually quoting passwords."""
+    """Create a URL without manual password interpolation or escaping."""
     return URL.create(
         drivername="postgresql+psycopg",
         username=settings.db_user,
@@ -23,9 +28,9 @@ def build_database_url(settings: Settings) -> URL:
 
 
 @lru_cache
-def get_engine() -> Engine:
-    """Create one engine per Python process, on first database use."""
-    return create_engine(
+def get_engine() -> AsyncEngine:
+    """Create a process-scoped async engine lazily."""
+    return create_async_engine(
         build_database_url(get_settings()),
         pool_pre_ping=True,
         connect_args={"connect_timeout": 5},
@@ -34,19 +39,19 @@ def get_engine() -> Engine:
 
 
 @lru_cache
-def get_session_factory() -> sessionmaker[Session]:
-    return sessionmaker(
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    return async_sessionmaker(
         bind=get_engine(),
         autoflush=False,
         expire_on_commit=False,
     )
 
 
-def get_db() -> Generator[Session, None, None]:
-    """Yield a session; the future service layer commits successful writes."""
-    with get_session_factory()() as session:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """One AsyncSession per request; future services own commit boundaries."""
+    async with get_session_factory()() as session:
         try:
             yield session
         except Exception:
-            session.rollback()
+            await session.rollback()
             raise
