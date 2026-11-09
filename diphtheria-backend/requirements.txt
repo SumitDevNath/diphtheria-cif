@@ -1,3 +1,8 @@
 FastAPI
 Pydantic
 Uvicorn
+SQLAlchemy
+alembic
+psycopg[binary]
+pydantic-settings
+pytest
