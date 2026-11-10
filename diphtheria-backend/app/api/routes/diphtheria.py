@@ -1,15 +1,23 @@
 
-"""Minimal protected core investigation endpoints."""
+"""Facility-scoped Diphtheria investigation endpoints."""
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    HTTPException,
+    Response,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import (
     get_trusted_submission_context,
     require_ndss_access,
 )
+from app.core.dghs_auth import FacilityPrincipal
 from app.db.session import get_db
 from app.schemas.diphtheria import DiphtheriaSubmitRequest
 from app.schemas.investigation import InvestigationResponse
@@ -28,7 +36,6 @@ from app.validation.diphtheria import SubmissionContext
 router = APIRouter(
     prefix="/api/v1/diphtheria/investigations",
     tags=["Diphtheria investigations"],
-    dependencies=[Depends(require_ndss_access)],
 )
 
 
@@ -40,10 +47,18 @@ router = APIRouter(
 async def create(
     payload: DiphtheriaSubmitRequest,
     response: Response,
+    principal: FacilityPrincipal = Depends(require_ndss_access),
     session: AsyncSession = Depends(get_db),
-    context: SubmissionContext = Depends(get_trusted_submission_context),
+    context: SubmissionContext = Depends(
+        get_trusted_submission_context
+    ),
 ) -> InvestigationResponse:
-    record = await create_investigation(session, payload, context)
+    record = await create_investigation(
+        session,
+        payload,
+        context,
+        principal.facility_id,
+    )
 
     response.headers["ETag"] = etag_for(record)
     response.headers["Location"] = (
@@ -60,12 +75,14 @@ async def create(
 async def retrieve(
     investigation_id: UUID,
     response: Response,
+    principal: FacilityPrincipal = Depends(require_ndss_access),
     session: AsyncSession = Depends(get_db),
 ) -> InvestigationResponse:
     try:
         record = await retrieve_investigation(
             session,
             investigation_id,
+            principal.facility_id,
         )
     except InvestigationNotFound as exc:
         raise HTTPException(
@@ -85,9 +102,15 @@ async def replace(
     investigation_id: UUID,
     payload: DiphtheriaSubmitRequest,
     response: Response,
-    if_match: str | None = Header(default=None, alias="If-Match"),
+    if_match: str | None = Header(
+        default=None,
+        alias="If-Match",
+    ),
+    principal: FacilityPrincipal = Depends(require_ndss_access),
     session: AsyncSession = Depends(get_db),
-    context: SubmissionContext = Depends(get_trusted_submission_context),
+    context: SubmissionContext = Depends(
+        get_trusted_submission_context
+    ),
 ) -> InvestigationResponse:
     if if_match is None:
         raise HTTPException(
@@ -101,6 +124,7 @@ async def replace(
             investigation_id,
             payload,
             context,
+            principal.facility_id,
             if_match,
         )
     except InvestigationNotFound as exc:
@@ -115,4 +139,5 @@ async def replace(
         ) from exc
 
     response.headers["ETag"] = etag_for(record)
+
     return to_response(record)

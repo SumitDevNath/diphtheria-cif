@@ -1,5 +1,5 @@
 
-"""Diphtheria CIF persistence models; conditional validation is in Phase 4."""
+"""Diphtheria CIF persistence models with facility ownership."""
 
 from __future__ import annotations
 
@@ -29,13 +29,13 @@ from app.db.base import Base
 
 def empty_clinical_selections() -> dict[str, dict[str, Any]]:
     return {
-        key: {
+        group: {
             "selected": [],
             "customOptions": [],
             "otherSelected": False,
             "otherDraft": "",
         }
-        for key in (
+        for group in (
             "symptoms",
             "signs",
             "complications",
@@ -45,19 +45,23 @@ def empty_clinical_selections() -> dict[str, dict[str, Any]]:
 
 
 class DiphtheriaInvestigation(Base):
-    """One record for six sections, with antibiotic rows in a separate table."""
-
     __tablename__ = "diphtheria_investigations"
 
     __table_args__ = (
         CheckConstraint(
-            "identification_ethnicity IS NULL OR identification_ethnicity IN "
+            "facility_id IS NULL OR length(btrim(facility_id)) > 0",
+            name="ck_diph_facility_owner",
+        ),
+        CheckConstraint(
+            "identification_ethnicity IS NULL OR "
+            "identification_ethnicity IN "
             "('bengali', 'tribal-national', 'non-national')",
             name="ck_diph_ethnicity",
         ),
         CheckConstraint(
             "identification_pregnancy_status IS NULL OR "
-            "identification_pregnancy_status IN ('pregnant', 'non-pregnant')",
+            "identification_pregnancy_status IN "
+            "('pregnant', 'non-pregnant')",
             name="ck_diph_pregnancy_status",
         ),
         CheckConstraint(
@@ -118,12 +122,17 @@ class DiphtheriaInvestigation(Base):
         default=uuid4,
     )
 
+    facility_id: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        index=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
     )
-
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -131,7 +140,7 @@ class DiphtheriaInvestigation(Base):
         onupdate=func.now(),
     )
 
-    # Identification
+    # Case identification
     identification_mother_name: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
@@ -183,21 +192,23 @@ class DiphtheriaInvestigation(Base):
         String(16)
     )
     background_similar_illness_in_family: Mapped[str | None] = mapped_column(
-        String(3),
-        nullable=True,
+        String(3), nullable=True
     )
     background_similar_illness_details: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
     background_healthcare_visit: Mapped[str | None] = mapped_column(
-        String(3),
-        nullable=True,
+        String(3), nullable=True
     )
-    background_healthcare_visit_date: Mapped[date | None] = mapped_column(Date)
-    background_healthcare_facility_id: Mapped[str | None] = mapped_column(Text)
-    background_healthcare_facility_name: Mapped[str | None] = mapped_column(Text)
-
-    # The Travel History schema remains external and opaque.
+    background_healthcare_visit_date: Mapped[date | None] = mapped_column(
+        Date
+    )
+    background_healthcare_facility_id: Mapped[str | None] = mapped_column(
+        Text
+    )
+    background_healthcare_facility_name: Mapped[str | None] = mapped_column(
+        Text
+    )
     background_travel_history: Mapped[Any | None] = mapped_column(JSONB)
 
     # Vaccination
@@ -230,8 +241,9 @@ class DiphtheriaInvestigation(Base):
 
     # Treatment
     treatment_antibiotics_administered: Mapped[str | None] = mapped_column(
-        String(3),
+        String(3)
     )
+
     antibiotic_rows: Mapped[list[AntibioticTherapy]] = relationship(
         back_populates="investigation",
         cascade="all, delete-orphan",
@@ -242,8 +254,6 @@ class DiphtheriaInvestigation(Base):
 
 
 class AntibioticTherapy(Base):
-    """One repeated therapy record; preserve frontend-provided stable UUID."""
-
     __tablename__ = "diphtheria_antibiotic_therapies"
 
     __table_args__ = (
@@ -286,12 +296,18 @@ class AntibioticTherapy(Base):
         PG_UUID(as_uuid=True),
         primary_key=True,
     )
-    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    position: Mapped[int] = mapped_column(
+        Integer, nullable=False
+    )
     medication: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
-    medication_origin: Mapped[str | None] = mapped_column(String(12))
-    administration_route: Mapped[str | None] = mapped_column(String(8))
+    medication_origin: Mapped[str | None] = mapped_column(
+        String(12)
+    )
+    administration_route: Mapped[str | None] = mapped_column(
+        String(8)
+    )
     start_date: Mapped[date | None] = mapped_column(Date)
     end_date: Mapped[date | None] = mapped_column(Date)
 
@@ -315,6 +331,8 @@ Index(
     ),
     unique=True,
     postgresql_where=(
-        func.length(func.btrim(AntibioticTherapy.medication)) > 0
+        func.length(
+            func.btrim(AntibioticTherapy.medication)
+        ) > 0
     ),
 )

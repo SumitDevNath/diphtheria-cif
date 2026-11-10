@@ -16,6 +16,20 @@ import {
   CIF_FONT_WEIGHTS,
 } from "../constants/typography.constants";
 
+import SickOutlinedIcon from "@mui/icons-material/SickOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
+
+import { CLINICAL_FIELD_IDS as IDS } from "../constants/clinical.constants";
+
+const CLINICAL_GROUP_ICONS = {
+  [IDS.symptoms]: SickOutlinedIcon,
+  [IDS.signs]: VisibilityOutlinedIcon,
+  [IDS.complications]: WarningAmberOutlinedIcon,
+  [IDS.comorbidConditions]: HealthAndSafetyOutlinedIcon,
+} as const;
+
 interface CheckboxGroupProps {
   id: string;
   title: string;
@@ -112,6 +126,9 @@ export default function CheckboxGroup({
   // The parent provides errors only after Submit Form.
   const message = error;
 
+  const GroupIcon =
+    CLINICAL_GROUP_ICONS[id as keyof typeof CLINICAL_GROUP_ICONS];
+
   return (
     <Box
       id={id}
@@ -145,24 +162,23 @@ export default function CheckboxGroup({
           minWidth: 0,
         }}
       >
-        {number && (
-          <Box
-            sx={{
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-              width: 23,
-              height: 23,
-              bgcolor: "#EAF3FF",
-              color: "#1755C9",
-              borderRadius: "50%",
-              fontSize: "0.67rem",
-              fontWeight: 700,
-            }}
-          >
-            {number}
-          </Box>
-        )}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+          }}
+        >
+          {GroupIcon ? (
+            <GroupIcon sx={{ fontSize: 20, display: "block" }} />
+          ) : (
+            number
+          )}
+        </Box>
 
         <Typography
           id={`${id}-heading`}

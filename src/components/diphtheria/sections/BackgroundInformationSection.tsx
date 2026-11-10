@@ -377,6 +377,7 @@ export default function BackgroundInformationSection({
                     "aria-describedby": `${IDS.similarIllnessDetails}-helper`,
                   },
                 }}
+                sx={{ backgroundColor: "#ffffff" }}
               />
 
               <FieldError
