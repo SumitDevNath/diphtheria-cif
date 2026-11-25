@@ -4,6 +4,8 @@ import { Box, IconButton, InputAdornment, TextField } from "@mui/material";
 import { FieldError, FieldLabel } from "../components/FieldParts";
 import {
   dmyToIso,
+  datDateToIso,
+  isoToDatDate,
   isoToDmy,
   todayIsoLocal,
   type DateConstraints,
@@ -19,6 +21,7 @@ export interface DateFieldProps extends DateConstraints {
   required?: boolean;
   readOnly?: boolean;
   hideLabel?: boolean;
+  displayFormat?: "DD-MM-YYYY" | "DD/MM/YY";
 }
 
 export default function DateField({
@@ -31,6 +34,7 @@ export default function DateField({
   required = false,
   readOnly = false,
   hideLabel = false,
+  displayFormat = "DD-MM-YYYY",
   noFuture = false,
   minDate,
   maxDate,
@@ -41,11 +45,12 @@ export default function DateField({
   // only after Submit Form has been clicked.
   const message = error;
 
-  const nativeValue = dmyToIso(value) ?? "";
+  const parseDate = displayFormat === "DD/MM/YY" ? datDateToIso : dmyToIso;
+  const nativeValue = parseDate(value) ?? "";
 
-  const min = minDate ? (dmyToIso(minDate) ?? undefined) : undefined;
+  const min = minDate ? (parseDate(minDate) ?? undefined) : undefined;
 
-  const explicitMax = maxDate ? (dmyToIso(maxDate) ?? undefined) : undefined;
+  const explicitMax = maxDate ? (parseDate(maxDate) ?? undefined) : undefined;
 
   const today = todayIsoLocal();
 
@@ -84,13 +89,13 @@ export default function DateField({
           onChange={(event) => onChange(event.target.value)}
           onBlur={onBlur}
           error={Boolean(message)}
-          placeholder="DD-MM-YYYY"
+          placeholder={displayFormat}
           size="small"
           fullWidth
           slotProps={{
             htmlInput: {
               inputMode: "numeric",
-              maxLength: 10,
+              maxLength: displayFormat === "DD/MM/YY" ? 8 : 10,
               readOnly,
               "aria-label": hideLabel ? label : undefined,
               "aria-describedby": `${id}-helper`,
@@ -127,11 +132,15 @@ export default function DateField({
           aria-label={`${label} native calendar`}
           tabIndex={-1}
           value={nativeValue}
-          min={min}
+          min={displayFormat === "DD/MM/YY" ? (min ?? "2000-01-01") : min}
           max={max}
           disabled={readOnly}
           onChange={(event) => {
-            onChange(isoToDmy(event.target.value));
+            onChange(
+              displayFormat === "DD/MM/YY"
+                ? isoToDatDate(event.target.value)
+                : isoToDmy(event.target.value),
+            );
             onBlur?.();
           }}
           sx={{

@@ -6,6 +6,7 @@ import type {
   CaseIdentification,
   ClinicalSelection,
   DiphtheriaFormData,
+  DATInformation,
   Ethnicity,
   FormSectionKey,
   Option,
@@ -108,6 +109,27 @@ export function createEmptyClinicalSelection(): ClinicalSelection {
   };
 }
 
+export function createInitialDATInformation(): DATInformation {
+  return {
+    given: null,
+    notGivenReason: null,
+    sensitivityTestDone: false,
+    testResult: null,
+    preTreatmentGiven: false,
+    preTreatments: [],
+    otherPreTreatment: "",
+    manufacturer: "",
+    batchLot: "",
+    administrationDate: "",
+    administrationMode: null,
+    doseUnits: "",
+    sideEffectsOccurred: false,
+    sideEffects: [],
+    otherSideEffect: "",
+    infusionContinued: null,
+  };
+}
+
 export function createInitialDiphtheriaData(): DiphtheriaFormData {
   return {
     identification: {
@@ -159,6 +181,7 @@ export function createInitialDiphtheriaData(): DiphtheriaFormData {
     treatment: {
       antibioticsAdministered: "no",
       antibioticRows: [createEmptyAntibioticRow()],
+      dat: createInitialDATInformation(),
     },
   };
 }

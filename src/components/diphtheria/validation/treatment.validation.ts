@@ -4,13 +4,24 @@ import {
   PREDEFINED_MEDICATIONS,
   TREATMENT_FIELD_IDS as IDS,
   TREATMENT_REQUIRED as REQUIRED,
+  DAT_FIELD_IDS as DAT_IDS,
+  DAT_REQUIRED,
 } from "../constants/treatment.constants";
 
 import { normalizeMedicationName } from "../utils/form.utils";
 
-import { dmyToIso, validateDateText } from "../utils/date.utils";
+import {
+  dmyToIso,
+  validateDateText,
+  validateDatDate,
+} from "../utils/date.utils";
 
-import type { AntibioticRow, FormFieldErrors } from "../types/diphtheria.types";
+import type {
+  AntibioticRow,
+  DATInformation,
+  FormFieldErrors,
+} from "../types/diphtheria.types";
+import { createInitialDATInformation } from "../constants/form.constants";
 
 import type { ValidationRule } from "./form.validation";
 
@@ -78,7 +89,7 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
     if (!row.startDate.trim()) {
       if (REQUIRED.startDate) errors[startId] = "Start date is required.";
     } else {
-      const message = validateDateText(row.startDate, { noFuture: true });
+      const message = validateDateText(row.startDate);
 
       if (message) errors[startId] = message;
     }
@@ -86,7 +97,7 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
     if (!row.endDate.trim()) {
       if (REQUIRED.endDate) errors[endId] = "End date is required.";
     } else {
-      const message = validateDateText(row.endDate, { noFuture: true });
+      const message = validateDateText(row.endDate);
 
       if (message) errors[endId] = message;
     }
@@ -99,6 +110,95 @@ function validateRows(rows: readonly AntibioticRow[]): FormFieldErrors {
     }
   }
 
+  return errors;
+}
+
+function validateDAT(datInput: DATInformation | undefined): FormFieldErrors {
+  const errors: FormFieldErrors = {};
+  const dat = datInput ?? createInitialDATInformation();
+  const R = DAT_REQUIRED;
+
+  if (!dat.given) {
+    if (R.given)
+      errors[DAT_IDS.given] = "Select Yes or No for DAT treatment given.";
+    return errors;
+  }
+
+  if (dat.given === "no") {
+    if (!dat.notGivenReason && R.notGivenReason) {
+      errors[DAT_IDS.notGivenReason] = "Select why DAT was not given.";
+    }
+    return errors;
+  }
+
+  if (dat.sensitivityTestDone) {
+    if (!dat.testResult && R.testResult) {
+      errors[DAT_IDS.testResult] = "Select the sensitivity test result.";
+    }
+    if (dat.testResult === "hypersensitive" && dat.preTreatmentGiven) {
+      if (R.preTreatments && dat.preTreatments.length === 0) {
+        errors[DAT_IDS.preTreatments] = "Select at least one pre-treatment.";
+      }
+      if (
+        dat.preTreatments.includes("other") &&
+        R.otherPreTreatment &&
+        !dat.otherPreTreatment.trim()
+      ) {
+        errors[DAT_IDS.otherPreTreatment] = "Specify the other pre-treatment.";
+      }
+    }
+  }
+
+  if (R.manufacturer && !dat.manufacturer.trim()) {
+    errors[DAT_IDS.manufacturer] = "Enter the manufacturer of DAT.";
+  }
+  if (dat.manufacturer.trim() && R.batchLot && !dat.batchLot.trim()) {
+    errors[DAT_IDS.batchLot] = "Enter the Batch/Lot No. of DAT.";
+  }
+
+  if (!dat.administrationDate.trim()) {
+    if (R.administrationDate)
+      errors[DAT_IDS.administrationDate] = "Enter the DAT administration date.";
+  } else {
+    const dateError = validateDatDate(dat.administrationDate, true);
+    if (dateError) errors[DAT_IDS.administrationDate] = dateError;
+  }
+
+  if (!dat.administrationMode) {
+    if (R.administrationMode)
+      errors[DAT_IDS.administrationMode] = "Select IV or IM.";
+  } else if (!(["iv", "im"] as string[]).includes(dat.administrationMode)) {
+    errors[DAT_IDS.administrationMode] =
+      "Select a valid mode of administration.";
+  }
+
+  if (!dat.doseUnits.trim()) {
+    if (R.doseUnits)
+      errors[DAT_IDS.doseUnits] = "Enter the dose administered (units).";
+  } else if (
+    !/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(dat.doseUnits.trim()) ||
+    !Number.isFinite(Number(dat.doseUnits)) ||
+    Number(dat.doseUnits) <= 0
+  ) {
+    errors[DAT_IDS.doseUnits] = "Enter a positive number of units.";
+  }
+
+  if (dat.sideEffectsOccurred) {
+    if (R.sideEffects && dat.sideEffects.length === 0) {
+      errors[DAT_IDS.sideEffects] = "Select at least one side effect.";
+    }
+    if (
+      dat.sideEffects.includes("other") &&
+      R.otherSideEffect &&
+      !dat.otherSideEffect.trim()
+    ) {
+      errors[DAT_IDS.otherSideEffect] = "Describe the other side effect.";
+    }
+  }
+
+  if (!dat.infusionContinued && R.infusionContinued) {
+    errors[DAT_IDS.infusionContinued] = "Select Yes or No.";
+  }
   return errors;
 }
 
@@ -115,5 +215,8 @@ export const TREATMENT_VALIDATION_RULES: readonly ValidationRule[] = [
   {
     when: ({ treatment }) => treatment.antibioticsAdministered === "yes",
     validateFields: ({ treatment }) => validateRows(treatment.antibioticRows),
+  },
+  {
+    validateFields: ({ treatment }) => validateDAT(treatment.dat),
   },
 ];

@@ -309,7 +309,7 @@ export default function MedicationRow({
             error={fieldError(endId)}
             readOnly={readOnly}
             minDate={row.startDate || undefined}
-            noFuture
+            // noFuture
           />
         </Box>
       </TableCell>

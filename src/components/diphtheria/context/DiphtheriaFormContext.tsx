@@ -11,6 +11,7 @@ import {
 import {
   createEmptyAntibioticRow,
   createInitialDiphtheriaData,
+  createInitialDATInformation,
 } from "../constants/form.constants";
 
 import { focusFirstInvalidField } from "../utils/form.utils";
@@ -37,6 +38,7 @@ import type {
   Vitals,
 } from "../types/diphtheria.types";
 import { isSchoolOccupation } from "../utils/demographics.utils";
+import { normalizeDATInformation } from "../utils/dat.utils.ts";
 
 type FormAction =
   | {
@@ -203,6 +205,13 @@ function applyFormAction(
         ...data.treatment,
         ...action.patch,
       };
+
+      if (action.patch.dat) {
+        next.dat = normalizeDATInformation({
+          ...(data.treatment.dat ?? createInitialDATInformation()),
+          ...action.patch.dat,
+        });
+      }
 
       if (next.antibioticsAdministered !== "yes") {
         next.antibioticRows = [createEmptyAntibioticRow()];

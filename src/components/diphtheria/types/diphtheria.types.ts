@@ -94,9 +94,39 @@ export interface AntibioticRow {
   endDate: string;
 }
 
+export type DATNotGivenReason = "not_available" | "referred";
+export type DATTestResult = "hypersensitive" | "no_reaction";
+export type DATPreTreatment =
+  | "antihistamine"
+  | "steroid"
+  | "adrenaline"
+  | "other";
+export type DATSideEffect = "anaphylaxis" | "febrile_reaction" | "other";
+export type DATAdministrationMode = "iv" | "im";
+
+export interface DATInformation {
+  given: YesNo;
+  notGivenReason: DATNotGivenReason | null;
+  sensitivityTestDone: boolean;
+  testResult: DATTestResult | null;
+  preTreatmentGiven: boolean;
+  preTreatments: DATPreTreatment[];
+  otherPreTreatment: string;
+  manufacturer: string;
+  batchLot: string;
+  administrationDate: string; // DD/MM/YY, as requested for DAT only
+  administrationMode: DATAdministrationMode | null;
+  doseUnits: string;
+  sideEffectsOccurred: boolean;
+  sideEffects: DATSideEffect[];
+  otherSideEffect: string;
+  infusionContinued: YesNo;
+}
+
 export interface TreatmentInformation {
   antibioticsAdministered: YesNo;
   antibioticRows: AntibioticRow[];
+  dat: DATInformation;
 }
 
 /** Date strings use DD-MM-YYYY; incomplete entries are permitted in state. */

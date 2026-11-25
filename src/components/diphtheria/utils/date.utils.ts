@@ -58,3 +58,27 @@ export function validateDateText(
   if (noFuture && iso > todayIsoLocal()) return "Future dates are not allowed.";
   return null;
 }
+
+/** DAT-only date representation DD/MM/YY (years 2000–2099). */
+export function datDateToIso(value: string): string | null {
+  const match = /^(\d{2})\/(\d{2})\/(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, day, month, twoDigitYear] = match;
+  return dmyToIso(`${day}-${month}-20${twoDigitYear}`);
+}
+
+export function isoToDatDate(value: string): string {
+  const match = /^20(\d{2})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return "";
+  const [, year, month, day] = match;
+  const candidate = `${day}/${month}/${year}`;
+  return datDateToIso(candidate) === value ? candidate : "";
+}
+
+export function validateDatDate(value: string, noFuture = true): string | null {
+  if (!value.trim()) return null;
+  const iso = datDateToIso(value);
+  if (!iso) return "Enter a valid date (DD/MM/YY).";
+  if (noFuture && iso > todayIsoLocal()) return "Future dates are not allowed.";
+  return null;
+}

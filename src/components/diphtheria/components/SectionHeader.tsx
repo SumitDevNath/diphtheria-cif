@@ -105,7 +105,7 @@ export default function SectionHeader({
               display: "flex",
               alignItems: "center",
               color: "#0A2850",
-              fontSize: "1rem",
+              fontSize: "1.2rem",
               fontWeight: 700,
               lineHeight: 1.5,
             }}

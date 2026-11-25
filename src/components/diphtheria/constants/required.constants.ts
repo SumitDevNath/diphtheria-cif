@@ -2,6 +2,7 @@ import type {
   BackgroundInformation,
   CaseIdentification,
   ClinicalDetails,
+  DATInformation,
   VaccinationHistory,
   Vitals,
 } from "../types/diphtheria.types";
@@ -29,7 +30,7 @@ type RequiredFieldsShape = {
     | "startDate"
     | "endDate",
     boolean
-  >;
+  > & { dat: Record<keyof DATInformation, boolean> };
 };
 
 export const REQUIRED_FIELDS = {
@@ -81,7 +82,25 @@ export const REQUIRED_FIELDS = {
     antibioticsAdministered: false, // toggle
     medication: true,
     administrationRoute: true,
-    startDate: true,
-    endDate: true,
+    startDate: false,
+    endDate: false,
+    dat: {
+      given: true, // Yes/No question (unselected at first)
+      notGivenReason: true,
+      sensitivityTestDone: false, // toggle
+      testResult: true,
+      preTreatmentGiven: false, // toggle
+      preTreatments: true,
+      otherPreTreatment: true,
+      manufacturer: true,
+      batchLot: true,
+      administrationDate: true,
+      administrationMode: true,
+      doseUnits: true,
+      sideEffectsOccurred: false, // toggle
+      sideEffects: true,
+      otherSideEffect: true,
+      infusionContinued: true, // Yes/No question
+    },
   },
 } as const satisfies RequiredFieldsShape;
