@@ -7,8 +7,11 @@ export const VITALS_FIELD_IDS = {
   heartRate: "vitals-heartRate",
   respiratoryRate: "vitals-respiratoryRate",
   temperature: "vitals-temperature",
+  temperatureNotMeasured: "vitals-temperatureNotMeasured",
   bloodPressure: "vitals-bloodPressure",
+  bloodPressureNotMeasured: "vitals-bloodPressureNotMeasured",
   oxygenSaturation: "vitals-oxygenSaturation",
+  oxygenSaturationNotMeasured: "vitals-oxygenSaturationNotMeasured",
   avpu: "vitals-avpu",
 } as const satisfies Record<VitalInputKey, string>;
 
@@ -16,8 +19,8 @@ export const VITALS_REQUIRED = REQUIRED_FIELDS.vitals;
 
 export const AVPU_OPTIONS: readonly Option<AVPU>[] = [
   { value: "alert", label: "Alert" },
-  { value: "voice", label: "Voice" },
-  { value: "pain", label: "Pain" },
+  { value: "voice", label: "Voice response" },
+  { value: "pain", label: "Pain response" },
   { value: "unresponsive", label: "Unresponsive" },
 ];
 

@@ -13,7 +13,6 @@ import {
 import { FieldError, FieldLabel } from "../components/FieldParts";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 
-import DateField from "../fields/DateField";
 import SelectField from "../fields/SelectField";
 
 import {
@@ -174,26 +173,6 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
           onBlur={() => markTouched(IDS.ethnicity)}
           error={fieldError(IDS.ethnicity)}
           required={REQUIRED.ethnicity}
-          readOnly={readOnly}
-        />
-      </Box>
-
-      {/* EXAMINATION DATE */}
-      <Box sx={fieldSx}>
-        <DateField
-          id={IDS.examinationDate}
-          label="Date of Examination"
-          value={identification.examinationDate}
-          onChange={(examinationDate) =>
-            update({
-              section: "identification",
-              patch: { examinationDate },
-            })
-          }
-          onBlur={() => markTouched(IDS.examinationDate)}
-          error={fieldError(IDS.examinationDate)}
-          required={REQUIRED.examinationDate}
-          noFuture
           readOnly={readOnly}
         />
       </Box>

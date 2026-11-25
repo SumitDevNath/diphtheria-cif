@@ -89,6 +89,16 @@ export const ADMINISTRATION_ROUTE_OPTIONS: readonly Option<AdministrationRoute>[
     { value: "im", label: "IM (Intramuscular)" },
   ];
 
+export function createEmptyDiphtheriaContact(): import("../types/diphtheria.types").DiphtheriaContact {
+  return {
+    id: crypto.randomUUID(),
+    name: "",
+    age: "",
+    address: "",
+    contactNumber: "",
+  };
+}
+
 export function createEmptyAntibioticRow(): AntibioticRow {
   return {
     id: crypto.randomUUID(),
@@ -144,14 +154,18 @@ export function createInitialDiphtheriaData(): DiphtheriaFormData {
       heartRate: "",
       respiratoryRate: "",
       temperature: "",
-      temperatureUnit: "C",
+      temperatureUnit: "F",
+      temperatureNotMeasured: false,
       bloodPressure: "",
+      bloodPressureNotMeasured: false,
       oxygenSaturation: "",
-      avpu: null,
+      oxygenSaturationNotMeasured: false,
+      avpu: [],
     },
     background: {
       contactKnownCase: null,
       contactDetails: "",
+      contacts: [createEmptyDiphtheriaContact()],
       householdSize: "",
       caregiversTreated: null,
       similarIllnessInFamily: "no",
@@ -173,6 +187,7 @@ export function createInitialDiphtheriaData(): DiphtheriaFormData {
       signs: createEmptyClinicalSelection(),
       complications: createEmptyClinicalSelection(),
       comorbidConditions: createEmptyClinicalSelection(),
+      hospitalVisitAvailable: false,
       hospital: null,
       visitDate: "",
       admissionDate: "",

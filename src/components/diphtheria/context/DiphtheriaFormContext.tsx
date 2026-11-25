@@ -10,6 +10,7 @@ import {
 
 import {
   createEmptyAntibioticRow,
+  createEmptyDiphtheriaContact,
   createInitialDiphtheriaData,
   createInitialDATInformation,
 } from "../constants/form.constants";
@@ -38,7 +39,7 @@ import type {
   Vitals,
 } from "../types/diphtheria.types";
 import { isSchoolOccupation } from "../utils/demographics.utils";
-import { normalizeDATInformation } from "../utils/dat.utils.ts";
+import { normalizeDATInformation } from "../utils/dat.utils";
 
 type FormAction =
   | {
@@ -142,6 +143,7 @@ function applyFormAction(
 
       if (next.contactKnownCase !== "yes") {
         next.contactDetails = "";
+        next.contacts = [createEmptyDiphtheriaContact()];
         next.householdSize = "";
         next.caregiversTreated = null;
         next.travelHistory = null;
@@ -154,6 +156,12 @@ function applyFormAction(
         next.healthcareFacility = null;
 
         return { ...data, background: next };
+      }
+
+      // Question 4 depends on Question 3 having a selected answer.
+      if (next.caregiversTreated === null || next.caregiversTreated === "") {
+        next.similarIllnessInFamily = "no";
+        next.similarIllnessDetails = "";
       }
 
       // A visible switch begins in the OFF position.
@@ -191,14 +199,16 @@ function applyFormAction(
       return { ...data, vaccination: next };
     }
 
-    case "clinical":
-      return {
-        ...data,
-        clinical: {
-          ...data.clinical,
-          ...action.patch,
-        },
-      };
+    case "clinical": {
+      const next = { ...data.clinical, ...action.patch };
+      if (!next.hospitalVisitAvailable) {
+        next.hospital = null;
+        next.visitDate = "";
+        next.admissionDate = "";
+        next.hospitalRecordNumber = "";
+      }
+      return { ...data, clinical: next };
+    }
 
     case "treatment": {
       const next = {

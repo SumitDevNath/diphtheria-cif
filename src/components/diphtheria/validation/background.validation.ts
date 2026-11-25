@@ -21,12 +21,17 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
         : "Select Yes, No or Unknown.",
   },
   {
-    id: IDS.contactDetails,
     when: contactIsYes,
-    validate: ({ background }) =>
-      background.contactDetails.trim() || !REQUIRED.contactDetails
-        ? null
-        : "Contact details are required.",
+    validateFields: ({ background }) => {
+      const errors: Record<string, string> = {};
+      for (const contact of background.contacts ?? []) {
+        if (contact.age.trim() && !/^\d+$/.test(contact.age.trim())) {
+          errors[`background-contact-${contact.id}-age`] =
+            "Enter a non-negative whole number for age.";
+        }
+      }
+      return errors;
+    },
   },
   {
     id: IDS.householdSize,
@@ -54,7 +59,9 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
     id: IDS.similarIllnessDetails,
     when: ({ background }) =>
       background.contactKnownCase === "yes" &&
-      background.similarIllnessInFamily === "yes",
+      background.similarIllnessInFamily === "yes" &&
+      background.caregiversTreated !== null &&
+      background.caregiversTreated !== "",
     validate: ({ background }) =>
       background.similarIllnessDetails.trim() || !REQUIRED.similarIllnessDetails
         ? null

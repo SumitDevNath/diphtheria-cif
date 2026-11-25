@@ -39,22 +39,26 @@ export const REQUIRED_FIELDS = {
     occupation: true,
     ethnicity: true,
     pregnancyStatus: true,
-    examinationDate: true,
+    examinationDate: false, // Relocated to the common NDSS form; not displayed here.
     schoolName: true,
   },
   vitals: {
     heartRate: true,
     respiratoryRate: true,
     temperature: true,
+    temperatureNotMeasured: false,
     bloodPressure: true,
+    bloodPressureNotMeasured: false,
     oxygenSaturation: true,
+    oxygenSaturationNotMeasured: false,
     avpu: true,
   },
   background: {
     contactKnownCase: true, // Yes/No/Unknown question, not an OFF-by-default toggle
-    contactDetails: true,
+    contactDetails: false, // legacy field, no longer rendered
+    contacts: false, // contacts may be left blank; entered age still checked
     householdSize: true,
-    caregiversTreated: true,
+    caregiversTreated: false,
     similarIllnessInFamily: false, // toggle
     similarIllnessDetails: true,
     healthcareVisit: false, // toggle
@@ -73,10 +77,11 @@ export const REQUIRED_FIELDS = {
     signs: true,
     complications: true,
     comorbidConditions: true,
+    hospitalVisitAvailable: false, // toggle
     hospital: true,
     visitDate: true,
-    admissionDate: true,
-    hospitalRecordNumber: true,
+    admissionDate: false,
+    hospitalRecordNumber: false,
   },
   treatment: {
     antibioticsAdministered: false, // toggle

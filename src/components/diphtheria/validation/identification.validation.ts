@@ -8,7 +8,6 @@ import {
   showAdultPregnancyFields,
 } from "../utils/demographics.utils";
 
-import { validateDateText } from "../utils/date.utils";
 import type { ValidationRule } from "./form.validation";
 
 interface CommonDemographics {
@@ -36,20 +35,6 @@ export function createIdentificationValidationRules({
         identification.ethnicity || !REQUIRED.ethnicity
           ? null
           : "Select ethnicity.",
-    },
-    {
-      id: IDS.examinationDate,
-      validate: ({ identification }) => {
-        if (!identification.examinationDate.trim()) {
-          return REQUIRED.examinationDate
-            ? "Examination date is required."
-            : null;
-        }
-
-        return validateDateText(identification.examinationDate, {
-          noFuture: true,
-        });
-      },
     },
     {
       id: IDS.schoolName,

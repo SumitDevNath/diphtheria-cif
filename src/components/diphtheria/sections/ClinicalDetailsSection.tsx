@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import ToggleSwitch from "../fields/ToggleSwitch";
 import {
   CLINICAL_FIELD_IDS as IDS,
   CLINICAL_GROUPS,
@@ -125,107 +126,145 @@ export default function ClinicalDetailsSection({
           Hospital / Facility Visit Details
         </Typography>
 
+        {/* Matches the blue switch treatment header without changing the clinical card. */}
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "minmax(0, 1fr)",
-              sm: "repeat(2, minmax(0, 1fr))",
-              md: [
-                "minmax(0, 2.2fr)",
-                "minmax(0, 1.1fr)",
-                "minmax(0, 1.1fr)",
-                "minmax(0, 1fr)",
-              ].join(" "),
-            },
-            columnGap: { xs: 1.5, sm: 2 },
-            rowGap: 1.25,
-            alignItems: "start",
-            minWidth: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1.25,
+            px: 1.25,
+            py: 0.5,
+            bgcolor: "#DEEBFB",
+            borderRadius: "12px",
+            maxWidth: "100%",
+            mb: clinical.hospitalVisitAvailable ? 1.5 : 0,
           }}
         >
-          {/* HOSPITAL / FACILITY */}
-          <Box sx={inputCellSx}>
-            <FacilityAutocomplete
-              id={IDS.hospital}
-              label="Name of hospital/facility"
-              value={clinical.hospital}
-              onChange={(hospital) =>
-                update({
-                  section: "clinical",
-                  patch: { hospital },
-                })
-              }
-              options={facilityOptions}
-              loading={facilityLoading}
-              loadError={facilityLoadError}
-              onBlur={() => markTouched(IDS.hospital)}
-              error={fieldError(IDS.hospital)}
-              required={REQUIRED.hospital}
-              readOnly={readOnly}
-            />
-          </Box>
-
-          {/* DATE OF VISIT */}
-          <Box sx={inputCellSx}>
-            <DateField
-              id={IDS.visitDate}
-              label="Date of Visit"
-              value={clinical.visitDate}
-              onChange={(visitDate) =>
-                update({
-                  section: "clinical",
-                  patch: { visitDate },
-                })
-              }
-              onBlur={() => markTouched(IDS.visitDate)}
-              error={fieldError(IDS.visitDate)}
-              required={REQUIRED.visitDate}
-              readOnly={readOnly}
-              noFuture
-            />
-          </Box>
-
-          {/* DATE OF ADMISSION */}
-          <Box sx={inputCellSx}>
-            <DateField
-              id={IDS.admissionDate}
-              label="Date of Admission"
-              value={clinical.admissionDate}
-              onChange={(admissionDate) =>
-                update({
-                  section: "clinical",
-                  patch: { admissionDate },
-                })
-              }
-              onBlur={() => markTouched(IDS.admissionDate)}
-              error={fieldError(IDS.admissionDate)}
-              required={REQUIRED.admissionDate}
-              readOnly={readOnly}
-              noFuture
-            />
-          </Box>
-
-          {/* HOSPITAL RECORD NUMBER */}
-          <Box sx={inputCellSx}>
-            <ValidatedField
-              id={IDS.hospitalRecordNumber}
-              label="Hospital Record No."
-              placeholder="Record number"
-              value={clinical.hospitalRecordNumber}
-              onChange={(hospitalRecordNumber) =>
-                update({
-                  section: "clinical",
-                  patch: { hospitalRecordNumber },
-                })
-              }
-              onBlur={() => markTouched(IDS.hospitalRecordNumber)}
-              error={fieldError(IDS.hospitalRecordNumber)}
-              required={REQUIRED.hospitalRecordNumber}
-              readOnly={readOnly}
-            />
-          </Box>
+          <Typography
+            sx={{
+              color: "#173B69",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              lineHeight: 1.4,
+            }}
+          >
+            Is hospital visit details available?
+          </Typography>
+          <ToggleSwitch
+            id={IDS.hospitalVisitAvailable}
+            checked={clinical.hospitalVisitAvailable}
+            disabled={readOnly}
+            ariaLabel="Is hospital visit details available?"
+            onChange={(hospitalVisitAvailable) =>
+              update({ section: "clinical", patch: { hospitalVisitAvailable } })
+            }
+          />
         </Box>
+
+        {clinical.hospitalVisitAvailable && (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "minmax(0, 1fr)",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: [
+                  "minmax(0, 2.2fr)",
+                  "minmax(0, 1.1fr)",
+                  "minmax(0, 1.1fr)",
+                  "minmax(0, 1fr)",
+                ].join(" "),
+              },
+              columnGap: { xs: 1.5, sm: 2 },
+              rowGap: 1.25,
+              alignItems: "start",
+              minWidth: 0,
+            }}
+          >
+            {/* HOSPITAL / FACILITY */}
+            <Box sx={inputCellSx}>
+              <FacilityAutocomplete
+                id={IDS.hospital}
+                label="Name of hospital/facility"
+                value={clinical.hospital}
+                onChange={(hospital) =>
+                  update({
+                    section: "clinical",
+                    patch: { hospital },
+                  })
+                }
+                options={facilityOptions}
+                loading={facilityLoading}
+                loadError={facilityLoadError}
+                onBlur={() => markTouched(IDS.hospital)}
+                error={fieldError(IDS.hospital)}
+                required={REQUIRED.hospital}
+                readOnly={readOnly}
+              />
+            </Box>
+
+            {/* DATE OF VISIT */}
+            <Box sx={inputCellSx}>
+              <DateField
+                id={IDS.visitDate}
+                label="Date of Visit"
+                value={clinical.visitDate}
+                onChange={(visitDate) =>
+                  update({
+                    section: "clinical",
+                    patch: { visitDate },
+                  })
+                }
+                onBlur={() => markTouched(IDS.visitDate)}
+                error={fieldError(IDS.visitDate)}
+                required={REQUIRED.visitDate}
+                readOnly={readOnly}
+                noFuture
+              />
+            </Box>
+
+            {/* DATE OF ADMISSION */}
+            <Box sx={inputCellSx}>
+              <DateField
+                id={IDS.admissionDate}
+                label="Date of Admission"
+                value={clinical.admissionDate}
+                onChange={(admissionDate) =>
+                  update({
+                    section: "clinical",
+                    patch: { admissionDate },
+                  })
+                }
+                onBlur={() => markTouched(IDS.admissionDate)}
+                error={fieldError(IDS.admissionDate)}
+                required={REQUIRED.admissionDate}
+                readOnly={readOnly}
+                noFuture
+              />
+            </Box>
+
+            {/* HOSPITAL RECORD NUMBER */}
+            <Box sx={inputCellSx}>
+              <ValidatedField
+                id={IDS.hospitalRecordNumber}
+                label="Hospital Record No."
+                placeholder="Record number"
+                value={clinical.hospitalRecordNumber}
+                onChange={(hospitalRecordNumber) =>
+                  update({
+                    section: "clinical",
+                    patch: { hospitalRecordNumber },
+                  })
+                }
+                onBlur={() => markTouched(IDS.hospitalRecordNumber)}
+                error={fieldError(IDS.hospitalRecordNumber)}
+                required={REQUIRED.hospitalRecordNumber}
+                readOnly={readOnly}
+              />
+            </Box>
+          </Box>
+        )}
       </Box>
     </Box>
   );

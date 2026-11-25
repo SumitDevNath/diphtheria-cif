@@ -83,6 +83,7 @@ export const CLINICAL_FIELD_IDS = {
   signs: "clinical-signs",
   complications: "clinical-complications",
   comorbidConditions: "clinical-comorbidConditions",
+  hospitalVisitAvailable: "clinical-hospitalVisitAvailable",
   hospital: "clinical-hospital",
   visitDate: "clinical-visitDate",
   admissionDate: "clinical-admissionDate",

@@ -33,15 +33,27 @@ export interface Vitals {
   heartRate: string;
   respiratoryRate: string;
   temperature: string;
-  temperatureUnit: TemperatureUnit;
+  temperatureUnit: TemperatureUnit; // Retained for old NDSS payloads; UI uses Fahrenheit.
+  temperatureNotMeasured: boolean;
   bloodPressure: string;
+  bloodPressureNotMeasured: boolean;
   oxygenSaturation: string;
-  avpu: AVPU | null;
+  oxygenSaturationNotMeasured: boolean;
+  avpu: AVPU[];
+}
+
+export interface DiphtheriaContact {
+  id: string;
+  name: string;
+  age: string;
+  address: string;
+  contactNumber: string;
 }
 
 export interface BackgroundInformation<TTravel = unknown> {
   contactKnownCase: YesNoUnknown;
-  contactDetails: string;
+  contactDetails: string; // Legacy data retained; replaced by contacts in the UI.
+  contacts: DiphtheriaContact[];
   householdSize: string;
   caregiversTreated: string | null;
   similarIllnessInFamily: YesNo;
@@ -79,6 +91,7 @@ export interface ClinicalDetails {
   signs: ClinicalSelection;
   complications: ClinicalSelection;
   comorbidConditions: ClinicalSelection;
+  hospitalVisitAvailable: boolean;
   hospital: FacilityOption | null;
   visitDate: string;
   admissionDate: string;

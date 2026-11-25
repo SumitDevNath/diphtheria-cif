@@ -10,7 +10,10 @@ import type {
 } from "../types/diphtheria.types";
 
 import { validateDateText } from "../utils/date.utils";
-import type { ValidationRule } from "./form.validation";
+import type {
+  ValidationRule,
+  SingleFieldValidationRule,
+} from "./form.validation";
 
 const normalize = (value: string): string =>
   value.trim().replace(/\s+/g, " ").toLowerCase();
@@ -88,7 +91,7 @@ function clinicalDateRule(
   key: "onsetDate" | "visitDate" | "admissionDate",
   required: boolean,
   label: string,
-): ValidationRule {
+): SingleFieldValidationRule {
   return {
     id,
     validate: ({ clinical }) => {
@@ -124,6 +127,7 @@ export const CLINICAL_VALIDATION_RULES: readonly ValidationRule[] = [
 
   {
     id: IDS.hospital,
+    when: ({ clinical }) => clinical.hospitalVisitAvailable === true,
     validate: ({ clinical }) => {
       const facility = clinical.hospital;
 
@@ -144,22 +148,29 @@ export const CLINICAL_VALIDATION_RULES: readonly ValidationRule[] = [
     },
   },
 
-  clinicalDateRule(
-    IDS.visitDate,
-    "visitDate",
-    REQUIRED.visitDate,
-    "Date of visit",
-  ),
+  {
+    ...clinicalDateRule(
+      IDS.visitDate,
+      "visitDate",
+      REQUIRED.visitDate,
+      "Date of visit",
+    ),
+    when: ({ clinical }) => clinical.hospitalVisitAvailable === true,
+  },
 
-  clinicalDateRule(
-    IDS.admissionDate,
-    "admissionDate",
-    REQUIRED.admissionDate,
-    "Date of admission",
-  ),
+  {
+    ...clinicalDateRule(
+      IDS.admissionDate,
+      "admissionDate",
+      REQUIRED.admissionDate,
+      "Date of admission",
+    ),
+    when: ({ clinical }) => clinical.hospitalVisitAvailable === true,
+  },
 
   {
     id: IDS.hospitalRecordNumber,
+    when: ({ clinical }) => clinical.hospitalVisitAvailable === true,
     validate: ({ clinical }) =>
       REQUIRED.hospitalRecordNumber
         ? validateRequiredText(

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Box, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 
 import {
   BACKGROUND_FIELD_IDS as IDS,
@@ -15,6 +15,7 @@ import ToggleSwitch from "../fields/ToggleSwitch";
 import DateField from "../fields/DateField";
 import FacilityAutocomplete from "../fields/FacilityAutocomplete";
 import SelectField from "../fields/SelectField";
+import ContactDetailsRows from "../fields/ContactDetailsRows";
 
 import type { FacilityOption } from "../types/diphtheria.types";
 
@@ -119,6 +120,10 @@ export default function BackgroundInformationSection({
 
   const healthcareVisitOn = background.healthcareVisit === "yes";
 
+  const hasCaregiverAnswer =
+    background.caregiversTreated !== null &&
+    background.caregiversTreated !== "";
+
   return (
     <Box
       sx={{
@@ -147,45 +152,7 @@ export default function BackgroundInformationSection({
       {/* Q1 DEPENDENT CONTENT */}
       {contactIsYes && (
         <Box sx={{ mt: 2, minWidth: 0 }}>
-          <Box sx={{ mb: 2 }}>
-            <FieldLabel
-              id={IDS.contactDetails}
-              required={REQUIRED.contactDetails}
-            >
-              Contact details
-            </FieldLabel>
-
-            <TextField
-              id={IDS.contactDetails}
-              size="small"
-              fullWidth
-              multiline
-              minRows={2}
-              value={background.contactDetails}
-              onChange={(event) =>
-                update({
-                  section: "background",
-                  patch: {
-                    contactDetails: event.target.value,
-                  },
-                })
-              }
-              onBlur={() => markTouched(IDS.contactDetails)}
-              error={Boolean(fieldError(IDS.contactDetails))}
-              placeholder="Enter contact details"
-              slotProps={{
-                htmlInput: {
-                  readOnly,
-                  "aria-describedby": `${IDS.contactDetails}-helper`,
-                },
-              }}
-            />
-
-            <FieldError
-              id={IDS.contactDetails}
-              message={fieldError(IDS.contactDetails)}
-            />
-          </Box>
+          <ContactDetailsRows />
 
           {/* EXTERNAL TRAVEL HISTORY */}
           <Box
@@ -265,7 +232,7 @@ export default function BackgroundInformationSection({
                 id={IDS.householdSize}
                 required={REQUIRED.householdSize}
               >
-                2. Number of persons living in the household
+                2. Number of persons living in the residence
               </FieldLabel>
 
               <TextField
@@ -317,6 +284,27 @@ export default function BackgroundInformationSection({
                 readOnly={readOnly}
                 required={REQUIRED.caregiversTreated}
               />
+              {background.caregiversTreated !== null && !readOnly && (
+                <Button
+                  type="button"
+                  size="small"
+                  variant="text"
+                  onClick={() =>
+                    update({
+                      section: "background",
+                      patch: { caregiversTreated: null },
+                    })
+                  }
+                  sx={{
+                    textTransform: "none",
+                    fontSize: "0.75rem",
+                    px: 0.5,
+                    mt: 0.5,
+                  }}
+                >
+                  Clear selection
+                </Button>
+              )}
             </Box>
           </Box>
 
@@ -332,59 +320,60 @@ export default function BackgroundInformationSection({
               gap: 2,
             }}
           >
-            <ToggleCard
-              id={IDS.similarIllnessInFamily}
-              title="4. Other people with similar illness in the family?"
-              checked={similarIllnessOn}
-              disabled={readOnly}
-              onChange={(checked) =>
-                update({
-                  section: "background",
-                  patch: {
-                    similarIllnessInFamily: checked ? "yes" : "no",
-                  },
-                })
-              }
-            >
-              <FieldLabel
-                id={IDS.similarIllnessDetails}
-                required={REQUIRED.similarIllnessDetails}
-              >
-                Details of similar illness
-              </FieldLabel>
-
-              <TextField
-                id={IDS.similarIllnessDetails}
-                value={background.similarIllnessDetails}
-                onChange={(event) =>
+            {hasCaregiverAnswer && (
+              <ToggleCard
+                id={IDS.similarIllnessInFamily}
+                title="4. Other people with similar illness in the family?"
+                checked={similarIllnessOn}
+                disabled={readOnly}
+                onChange={(checked) =>
                   update({
                     section: "background",
                     patch: {
-                      similarIllnessDetails: event.target.value,
+                      similarIllnessInFamily: checked ? "yes" : "no",
                     },
                   })
                 }
-                onBlur={() => markTouched(IDS.similarIllnessDetails)}
-                fullWidth
-                multiline
-                minRows={2}
-                size="small"
-                placeholder="Specify details"
-                error={Boolean(fieldError(IDS.similarIllnessDetails))}
-                slotProps={{
-                  htmlInput: {
-                    readOnly,
-                    "aria-describedby": `${IDS.similarIllnessDetails}-helper`,
-                  },
-                }}
-                sx={{ backgroundColor: "#ffffff" }}
-              />
+              >
+                <FieldLabel
+                  id={IDS.similarIllnessDetails}
+                  required={REQUIRED.similarIllnessDetails}
+                >
+                  Details of similar illness
+                </FieldLabel>
 
-              <FieldError
-                id={IDS.similarIllnessDetails}
-                message={fieldError(IDS.similarIllnessDetails)}
-              />
-            </ToggleCard>
+                <TextField
+                  id={IDS.similarIllnessDetails}
+                  value={background.similarIllnessDetails}
+                  onChange={(event) =>
+                    update({
+                      section: "background",
+                      patch: {
+                        similarIllnessDetails: event.target.value,
+                      },
+                    })
+                  }
+                  onBlur={() => markTouched(IDS.similarIllnessDetails)}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  size="small"
+                  placeholder="Specify details"
+                  error={Boolean(fieldError(IDS.similarIllnessDetails))}
+                  slotProps={{
+                    htmlInput: {
+                      readOnly,
+                      "aria-describedby": `${IDS.similarIllnessDetails}-helper`,
+                    },
+                  }}
+                />
+
+                <FieldError
+                  id={IDS.similarIllnessDetails}
+                  message={fieldError(IDS.similarIllnessDetails)}
+                />
+              </ToggleCard>
+            )}
 
             <ToggleCard
               id={IDS.healthcareVisit}

@@ -1,10 +1,12 @@
+import { useEffect } from "react";
 import {
   Box,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
   InputAdornment,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
+  Typography,
 } from "@mui/material";
 import { FieldError, FieldLabel } from "../components/FieldParts";
 import {
@@ -15,14 +17,9 @@ import {
   type NumericVitalKey,
 } from "../constants/vitals.constants";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
-import SelectField from "../fields/SelectField";
 import { NumberField, ValidatedField } from "../fields/ValidatedField";
-import type { TemperatureUnit } from "../types/diphtheria.types";
-
-import {
-  convertTemperature,
-  isValidTemperatureNumber,
-} from "../utils/temperature.utils";
+import type { AVPU } from "../types/diphtheria.types";
+import { convertTemperature } from "../utils/temperature.utils";
 
 const fieldCellSx = {
   minWidth: 0,
@@ -32,53 +29,102 @@ const fieldCellSx = {
     borderRadius: "6px",
     bgcolor: "#FFFFFF",
   },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#C9D9EF",
-  },
-  "& .MuiInputBase-input": {
-    minWidth: 0,
-    fontSize: "0.78rem",
-  },
-  "& .MuiInputAdornment-root": {
-    "& .MuiTypography-root": {
-      color: "#5B708C",
-      fontSize: "0.7rem",
-      whiteSpace: "nowrap",
-    },
+  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C9D9EF" },
+  "& .MuiInputBase-input": { minWidth: 0, fontSize: "0.78rem" },
+  "& .MuiInputAdornment-root .MuiTypography-root": {
+    color: "#5B708C",
+    fontSize: "0.7rem",
+    whiteSpace: "nowrap",
   },
 } as const;
+
+interface NotMeasuredOptionProps {
+  id: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+function NotMeasuredOption({
+  id,
+  checked,
+  disabled,
+  onChange,
+}: NotMeasuredOptionProps) {
+  return (
+    <FormControlLabel
+      sx={{
+        m: 0,
+        mt: 0.25,
+        "& .MuiFormControlLabel-label": {
+          fontSize: "0.75rem",
+          color: "#476181",
+        },
+      }}
+      control={
+        <Checkbox
+          id={id}
+          size="small"
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          sx={{ p: 0.5 }}
+        />
+      }
+      label="Not measured"
+    />
+  );
+}
 
 export default function VitalsSection() {
   const { data, update, fieldError, markTouched, readOnly } =
     useDiphtheriaForm();
 
-  const handleTemperatureUnitChange = (nextUnit: TemperatureUnit | null) => {
-    if (!nextUnit) return;
-
-    const currentUnit = data.vitals.temperatureUnit;
-    const currentValue = data.vitals.temperature;
-
-    if (currentUnit === nextUnit) return;
-
-    // Do not silently reinterpret malformed input.
-    // Its validation error remains Submit-only.
-    if (currentValue.trim() && !isValidTemperatureNumber(currentValue)) {
-      return;
-    }
-
-    update({
-      section: "vitals",
-      patch: {
-        temperatureUnit: nextUnit,
-        temperature: convertTemperature(currentValue, currentUnit, nextUnit),
-      },
-    });
-  };
-
   const vitals = data.vitals;
+  const displayTemperature =
+    vitals.temperatureUnit === "C"
+      ? convertTemperature(vitals.temperature, "C", "F")
+      : vitals.temperature;
+
+  // For existing NDSS data saved in Celsius, convert its value once
+  // without silently reinterpreting the original numeric quantity.
+  useEffect(() => {
+    if (vitals.temperatureUnit === "C") {
+      update({
+        section: "vitals",
+        patch: {
+          temperature: convertTemperature(vitals.temperature, "C", "F"),
+          temperatureUnit: "F",
+        },
+      });
+    }
+  }, [vitals.temperature, vitals.temperatureUnit, update]);
+
+  const avpuValues: AVPU[] = Array.isArray(vitals.avpu)
+    ? vitals.avpu
+    : typeof vitals.avpu === "string"
+      ? [vitals.avpu as AVPU]
+      : [];
+
+  const avpuIsUnresponsive = avpuValues.includes("unresponsive");
+
+  const toggleAVPU = (option: AVPU, checked: boolean) => {
+    const next: AVPU[] =
+      option === "unresponsive"
+        ? checked
+          ? ["unresponsive"]
+          : []
+        : checked
+          ? [...avpuValues.filter((value) => value !== "unresponsive"), option]
+          : avpuValues.filter((value) => value !== option);
+
+    update({ section: "vitals", patch: { avpu: [...new Set(next)] } });
+  };
 
   const renderNumericField = (key: NumericVitalKey) => {
     const config = NUMERIC_VITAL_FIELDS[key];
+    const isSaturation = key === "oxygenSaturation";
+    const notMeasured = isSaturation && vitals.oxygenSaturationNotMeasured;
 
     return (
       <Box key={key} sx={fieldCellSx}>
@@ -90,16 +136,29 @@ export default function VitalsSection() {
           decimal={config.decimal}
           value={vitals[key]}
           onChange={(value) =>
-            update({
-              section: "vitals",
-              patch: { [key]: value },
-            })
+            update({ section: "vitals", patch: { [key]: value } })
           }
           onBlur={() => markTouched(IDS[key])}
           error={fieldError(IDS[key])}
-          required={REQUIRED[key]}
-          readOnly={readOnly}
+          required={REQUIRED[key] && !notMeasured}
+          readOnly={readOnly || notMeasured}
         />
+        {isSaturation && (
+          <NotMeasuredOption
+            id={IDS.oxygenSaturationNotMeasured}
+            checked={vitals.oxygenSaturationNotMeasured}
+            disabled={readOnly}
+            onChange={(checked) =>
+              update({
+                section: "vitals",
+                patch: {
+                  oxygenSaturationNotMeasured: checked,
+                  ...(checked ? { oxygenSaturation: "" } : {}),
+                },
+              })
+            }
+          />
+        )}
       </Box>
     );
   };
@@ -122,31 +181,29 @@ export default function VitalsSection() {
         boxSizing: "border-box",
       }}
     >
-      {/* ROW 1: HEART RATE */}
       {renderNumericField("heartRate")}
-
-      {/* ROW 1: RESPIRATORY RATE */}
       {renderNumericField("respiratoryRate")}
 
-      {/* ROW 1: TEMPERATURE */}
+      {/* Temperature is Fahrenheit-only. */}
       <Box sx={fieldCellSx}>
-        <FieldLabel id={IDS.temperature} required={REQUIRED.temperature}>
+        <FieldLabel
+          id={IDS.temperature}
+          required={REQUIRED.temperature && !vitals.temperatureNotMeasured}
+        >
           Temperature
         </FieldLabel>
-
         <TextField
           id={IDS.temperature}
           fullWidth
           size="small"
-          value={vitals.temperature}
+          value={displayTemperature}
           placeholder="Temperature"
+          disabled={vitals.temperatureNotMeasured}
           error={Boolean(fieldError(IDS.temperature))}
           onChange={(event) =>
             update({
               section: "vitals",
-              patch: {
-                temperature: event.target.value,
-              },
+              patch: { temperature: event.target.value, temperatureUnit: "F" },
             })
           }
           onBlur={() => markTouched(IDS.temperature)}
@@ -157,106 +214,106 @@ export default function VitalsSection() {
               "aria-describedby": `${IDS.temperature}-helper`,
             },
             input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip
-                    title="Changing units clears the entered temperature."
-                    arrow
-                  >
-                    <ToggleButtonGroup
-                      size="small"
-                      value={data.vitals.temperatureUnit}
-                      exclusive
-                      disabled={readOnly}
-                      aria-label="Temperature unit"
-                      onChange={(_, nextUnit: TemperatureUnit | null) =>
-                        handleTemperatureUnitChange(nextUnit)
-                      }
-                      sx={{
-                        height: 28,
-                        "& .MuiToggleButton-root": {
-                          minWidth: 33,
-                          px: 0.6,
-                          py: 0.25,
-                          fontSize: "0.7rem",
-                          fontWeight: 600,
-                          textTransform: "none",
-                          color: "#64748B",
-                          borderColor: "#D4E0EE",
-                          "&.Mui-selected": {
-                            bgcolor: "#EAF3FF",
-                            color: "#1755C9",
-                            "&:hover": {
-                              bgcolor: "#EAF3FF",
-                            },
-                          },
-                        },
-                      }}
-                    >
-                      <ToggleButton value="C" aria-label="Celsius">
-                        °C
-                      </ToggleButton>
-
-                      <ToggleButton value="F" aria-label="Fahrenheit">
-                        °F
-                      </ToggleButton>
-                    </ToggleButtonGroup>
-                  </Tooltip>
-                </InputAdornment>
-              ),
+              endAdornment: <InputAdornment position="end">°F</InputAdornment>,
             },
           }}
         />
-
         <FieldError
           id={IDS.temperature}
           message={fieldError(IDS.temperature)}
         />
+        <NotMeasuredOption
+          id={IDS.temperatureNotMeasured}
+          checked={vitals.temperatureNotMeasured}
+          disabled={readOnly}
+          onChange={(checked) =>
+            update({
+              section: "vitals",
+              patch: {
+                temperatureNotMeasured: checked,
+                temperatureUnit: "F",
+                ...(checked ? { temperature: "" } : {}),
+              },
+            })
+          }
+        />
       </Box>
 
-      {/* ROW 2: BLOOD PRESSURE */}
+      {/* BP — label and placeholder do not include an example. */}
       <Box sx={fieldCellSx}>
         <ValidatedField
           id={IDS.bloodPressure}
-          label="BP"
-          placeholder="Blood pressure (120/80)"
+          label="Blood Pressure"
+          placeholder="Blood pressure"
           unit="mmHg"
           value={vitals.bloodPressure}
           onChange={(bloodPressure) =>
-            update({
-              section: "vitals",
-              patch: { bloodPressure },
-            })
+            update({ section: "vitals", patch: { bloodPressure } })
           }
           onBlur={() => markTouched(IDS.bloodPressure)}
           error={fieldError(IDS.bloodPressure)}
-          required={REQUIRED.bloodPressure}
-          readOnly={readOnly}
+          required={REQUIRED.bloodPressure && !vitals.bloodPressureNotMeasured}
+          readOnly={readOnly || vitals.bloodPressureNotMeasured}
+        />
+        <NotMeasuredOption
+          id={IDS.bloodPressureNotMeasured}
+          checked={vitals.bloodPressureNotMeasured}
+          disabled={readOnly}
+          onChange={(checked) =>
+            update({
+              section: "vitals",
+              patch: {
+                bloodPressureNotMeasured: checked,
+                ...(checked ? { bloodPressure: "" } : {}),
+              },
+            })
+          }
         />
       </Box>
 
-      {/* ROW 2: OXYGEN SATURATION */}
       {renderNumericField("oxygenSaturation")}
 
-      {/* ROW 2: AVPU */}
+      {/* AVPU: multiple responses except Unresponsive, which is exclusive. */}
       <Box sx={fieldCellSx}>
-        <SelectField
-          id={IDS.avpu}
-          label="AVPU"
-          placeholder="Select AVPU"
-          value={vitals.avpu}
-          options={AVPU_OPTIONS}
-          onChange={(avpu) =>
-            update({
-              section: "vitals",
-              patch: { avpu },
-            })
-          }
-          onBlur={() => markTouched(IDS.avpu)}
-          error={fieldError(IDS.avpu)}
-          required={REQUIRED.avpu}
-          readOnly={readOnly}
-        />
+        <FieldLabel id={IDS.avpu} required={REQUIRED.avpu}>
+          AVPU
+        </FieldLabel>
+        <FormGroup row id={IDS.avpu} sx={{ gap: 0.5, alignItems: "center" }}>
+          {AVPU_OPTIONS.map((option) => (
+            <FormControlLabel
+              key={option.value}
+              sx={{
+                m: 0,
+                mr: 0.75,
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "0.8125rem",
+                  color: "#17365F",
+                },
+              }}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={avpuValues.includes(option.value)}
+                  disabled={
+                    readOnly ||
+                    (avpuIsUnresponsive && option.value !== "unresponsive")
+                  }
+                  onBlur={() => markTouched(IDS.avpu)}
+                  onChange={(event) =>
+                    toggleAVPU(option.value, event.target.checked)
+                  }
+                  sx={{ p: 0.5 }}
+                />
+              }
+              label={
+                <Typography sx={{ fontSize: "0.8125rem" }}>
+                  {option.label}
+                </Typography>
+              }
+            />
+          ))}
+        </FormGroup>
+        <FieldError id={IDS.avpu} message={fieldError(IDS.avpu)} />
       </Box>
     </Box>
   );

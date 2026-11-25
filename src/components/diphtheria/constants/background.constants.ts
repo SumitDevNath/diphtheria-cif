@@ -6,6 +6,7 @@ type BackgroundFieldKey = Exclude<keyof BackgroundInformation, "travelHistory">;
 export const BACKGROUND_FIELD_IDS = {
   contactKnownCase: "background-contactKnownCase",
   contactDetails: "background-contactDetails",
+  contacts: "background-contacts",
   householdSize: "background-householdSize",
   caregiversTreated: "background-caregiversTreated",
   similarIllnessInFamily: "background-similarIllnessInFamily",
