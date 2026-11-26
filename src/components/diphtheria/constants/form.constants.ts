@@ -21,7 +21,7 @@ export const SECTION_DEFINITIONS: ReadonlyArray<{
 }> = [
   {
     id: "identification",
-    title: "More Case Identification/ Demographic Details",
+    title: "More Case Information",
     number: null,
     phase: 3,
   },

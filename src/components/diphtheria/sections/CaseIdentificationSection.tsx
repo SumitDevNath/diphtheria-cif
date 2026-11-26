@@ -157,6 +157,38 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
         <FieldError id={IDS.occupation} message={fieldError(IDS.occupation)} />
       </Box>
 
+      {/* CONDITIONAL SCHOOL NAME */}
+      {showSchool && (
+        <Box sx={fieldSx}>
+          <FieldLabel id={IDS.schoolName} required={REQUIRED.schoolName}>
+            School/Madrasha Name
+          </FieldLabel>
+
+          <TextField
+            id={IDS.schoolName}
+            value={identification.schoolName}
+            onChange={(event) => updateText("schoolName", event.target.value)}
+            onBlur={() => markTouched(IDS.schoolName)}
+            placeholder="Enter school/madrasha name"
+            size="small"
+            fullWidth
+            error={Boolean(fieldError(IDS.schoolName))}
+            slotProps={{
+              htmlInput: {
+                readOnly,
+                "aria-describedby": `${IDS.schoolName}-helper`,
+              },
+            }}
+            sx={fieldSx}
+          />
+
+          <FieldError
+            id={IDS.schoolName}
+            message={fieldError(IDS.schoolName)}
+          />
+        </Box>
+      )}
+
       {/* ETHNICITY */}
       <Box sx={fieldSx}>
         <SelectField
@@ -176,38 +208,6 @@ export default function CaseIdentificationSection({ dateOfBirth, sex }: Props) {
           readOnly={readOnly}
         />
       </Box>
-
-      {/* CONDITIONAL SCHOOL NAME */}
-      {showSchool && (
-        <Box sx={fieldSx}>
-          <FieldLabel id={IDS.schoolName} required={REQUIRED.schoolName}>
-            School Name
-          </FieldLabel>
-
-          <TextField
-            id={IDS.schoolName}
-            value={identification.schoolName}
-            onChange={(event) => updateText("schoolName", event.target.value)}
-            onBlur={() => markTouched(IDS.schoolName)}
-            placeholder="Enter school name"
-            size="small"
-            fullWidth
-            error={Boolean(fieldError(IDS.schoolName))}
-            slotProps={{
-              htmlInput: {
-                readOnly,
-                "aria-describedby": `${IDS.schoolName}-helper`,
-              },
-            }}
-            sx={fieldSx}
-          />
-
-          <FieldError
-            id={IDS.schoolName}
-            message={fieldError(IDS.schoolName)}
-          />
-        </Box>
-      )}
 
       {/* COMMON-FORM DOB DEPENDENT FIELDS */}
       {showAdultFields && (

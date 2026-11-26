@@ -60,8 +60,7 @@ export const BACKGROUND_VALIDATION_RULES: readonly ValidationRule[] = [
     when: ({ background }) =>
       background.contactKnownCase === "yes" &&
       background.similarIllnessInFamily === "yes" &&
-      background.caregiversTreated !== null &&
-      background.caregiversTreated !== "",
+      background.householdSize.trim() !== "",
     validate: ({ background }) =>
       background.similarIllnessDetails.trim() || !REQUIRED.similarIllnessDetails
         ? null

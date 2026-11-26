@@ -158,8 +158,8 @@ function applyFormAction(
         return { ...data, background: next };
       }
 
-      // Question 4 depends on Question 3 having a selected answer.
-      if (next.caregiversTreated === null || next.caregiversTreated === "") {
+      // Question 4 depends on Question 2 (residence count) having an answer.
+      if (next.householdSize.trim() === "") {
         next.similarIllnessInFamily = "no";
         next.similarIllnessDetails = "";
       }

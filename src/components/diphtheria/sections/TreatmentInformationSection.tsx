@@ -50,14 +50,14 @@ export function AntibioticTherapySwitch() {
             lineHeight: 1.4,
           }}
         >
-          Administered antibiotic therapy?
+          Administered therapy available?
         </Typography>
 
         <ToggleSwitch
           id={IDS.antibioticsAdministered}
           checked={checked}
           disabled={readOnly}
-          ariaLabel="Administered antibiotic therapy?"
+          ariaLabel="Administered therapy available?"
           onChange={(enabled) =>
             update({
               section: "treatment",
@@ -175,16 +175,34 @@ export default function TreatmentInformationSection() {
         boxSizing: "border-box",
       }}
     >
-      {therapyGiven && (
+      {/* Antibiotic therapy is a separate subsection, regardless of switch state. */}
+      <Paper
+        component="section"
+        variant="outlined"
+        aria-label="Therapy Record"
+        sx={{
+          p: { xs: 1.5, sm: 2 },
+          minWidth: 0,
+          borderColor: "#DCE6F3",
+          borderRadius: "8px",
+          boxShadow: "none",
+          bgcolor: "#F6F9FE",
+        }}
+      >
         <Box
-          id={IDS.antibioticRows}
-          tabIndex={-1}
-          sx={{ minWidth: 0, outline: "none" }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+            flexWrap: "wrap",
+            mb: therapyGiven ? 1.25 : 0,
+            minWidth: 0,
+          }}
         >
           <Typography
             component="h3"
             sx={{
-              mb: 1.25,
               ml: 1,
               color: "#1755C9",
               fontSize: "0.875rem",
@@ -192,135 +210,138 @@ export default function TreatmentInformationSection() {
               textTransform: "uppercase",
             }}
           >
-            Antibiotic Therapy Record
+            Therapy Record
           </Typography>
+          <AntibioticTherapySwitch />
+        </Box>
 
+        {therapyGiven && (
           <Box
-            sx={{
-              width: "100%",
-              minWidth: 0,
-              containerType: "inline-size",
-            }}
+            id={IDS.antibioticRows}
+            tabIndex={-1}
+            sx={{ minWidth: 0, outline: "none" }}
           >
-            <Paper
-              variant="outlined"
+            <Box
               sx={{
-                borderColor: "#DCE6F3",
-                borderRadius: "8px",
-                overflow: "hidden",
-                boxShadow: "none",
+                width: "100%",
+                minWidth: 0,
+                containerType: "inline-size",
               }}
             >
-              <TableContainer
+              <Paper
+                variant="outlined"
                 sx={{
-                  width: "100%",
-                  overflowX: "hidden",
+                  borderColor: "#DCE6F3",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  boxShadow: "none",
                 }}
               >
-                <Table
-                  size="small"
-                  aria-label="Antibiotic therapy record"
-                  sx={treatmentTableSx}
+                <TableContainer
+                  sx={{
+                    width: "100%",
+                    overflowX: "hidden",
+                  }}
                 >
-                  <TableHead>
-                    <TableRow>
-                      <TableCell
-                        sx={{
-                          width: showRemove ? "27%" : "30%",
-                        }}
-                      >
-                        Medication{REQUIRED.medication && <RequiredMark />}
-                      </TableCell>
-
-                      <TableCell
-                        sx={{
-                          width: showRemove ? "26%" : "30%",
-                        }}
-                      >
-                        Administration route
-                        {REQUIRED.administrationRoute && <RequiredMark />}
-                      </TableCell>
-
-                      <TableCell sx={{ width: "20%" }}>
-                        Start date{REQUIRED.startDate && <RequiredMark />}
-                      </TableCell>
-
-                      <TableCell sx={{ width: "20%" }}>
-                        End date{REQUIRED.endDate && <RequiredMark />}
-                      </TableCell>
-
-                      {showRemove && (
+                  <Table
+                    size="small"
+                    aria-label="Antibiotic therapy record"
+                    sx={treatmentTableSx}
+                  >
+                    <TableHead>
+                      <TableRow>
                         <TableCell
                           sx={{
-                            width: "7%",
-                            textAlign: "center",
+                            width: showRemove ? "27%" : "30%",
                           }}
-                          aria-label="Remove record"
+                        >
+                          Medication{REQUIRED.medication && <RequiredMark />}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            width: showRemove ? "26%" : "30%",
+                          }}
+                        >
+                          Administration route
+                          {REQUIRED.administrationRoute && <RequiredMark />}
+                        </TableCell>
+
+                        <TableCell sx={{ width: "20%" }}>
+                          Start date{REQUIRED.startDate && <RequiredMark />}
+                        </TableCell>
+
+                        <TableCell sx={{ width: "20%" }}>
+                          End date{REQUIRED.endDate && <RequiredMark />}
+                        </TableCell>
+
+                        {showRemove && (
+                          <TableCell
+                            sx={{
+                              width: "7%",
+                              textAlign: "center",
+                            }}
+                            aria-label="Remove record"
+                          />
+                        )}
+                      </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                      {antibioticRows.map((row, index) => (
+                        <MedicationRow
+                          key={row.id}
+                          row={row}
+                          index={index}
+                          rows={antibioticRows}
+                          showRemove={showRemove}
                         />
-                      )}
-                    </TableRow>
-                  </TableHead>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            </Box>
 
-                  <TableBody>
-                    {antibioticRows.map((row, index) => (
-                      <MedicationRow
-                        key={row.id}
-                        row={row}
-                        index={index}
-                        rows={antibioticRows}
-                        showRemove={showRemove}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Box>
+            <FieldError
+              id={IDS.antibioticRows}
+              message={fieldError(IDS.antibioticRows)}
+            />
 
-          <FieldError
-            id={IDS.antibioticRows}
-            message={fieldError(IDS.antibioticRows)}
-          />
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-start",
-              mt: 1.5,
-              ml: 1,
-            }}
-          >
-            <Button
-              type="button"
-              variant="outlined"
-              size="small"
-              disabled={readOnly}
-              onClick={addAntibioticRow}
+            <Box
               sx={{
-                px: 2,
-                py: 0.75,
-                borderRadius: "6px",
-                fontSize: "0.8125rem",
-                fontWeight: 600,
-                textTransform: "none",
-                borderColor: "#2563EB",
-                color: "#1755C9",
+                display: "flex",
+                justifyContent: "flex-start",
+                mt: 1.5,
+                ml: 1,
               }}
             >
-              + Add Row
-            </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                size="small"
+                disabled={readOnly}
+                onClick={addAntibioticRow}
+                sx={{
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: "6px",
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  borderColor: "#2563EB",
+                  color: "#1755C9",
+                }}
+              >
+                + Add Row
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      )}
+        )}
+      </Paper>
 
-      {/* DAT is independent of the antibiotic therapy switch. */}
-      <Box
-        sx={{
-          mt: therapyGiven ? 3 : 0,
-          pt: therapyGiven ? 2 : 0,
-          borderTop: therapyGiven ? "1px solid #E2EAF5" : "none",
-        }}
-      >
+      {/* DAT remains independent and is always visible below its own heading. */}
+      <Box sx={{ mt: 1, minWidth: 0 }}>
         <DATAntitoxinSection />
       </Box>
     </Box>

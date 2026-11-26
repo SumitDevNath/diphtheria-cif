@@ -274,19 +274,37 @@ export default function VitalsSection() {
       {renderNumericField("oxygenSaturation")}
 
       {/* AVPU: multiple responses except Unresponsive, which is exclusive. */}
-      <Box sx={fieldCellSx}>
+      <Box
+        sx={{
+          ...fieldCellSx,
+          gridColumn: { xs: "1 / -1", sm: "1 / -1", md: "span 3" },
+        }}
+      >
         <FieldLabel id={IDS.avpu} required={REQUIRED.avpu}>
           AVPU
         </FieldLabel>
-        <FormGroup row id={IDS.avpu} sx={{ gap: 0.5, alignItems: "center" }}>
+        <FormGroup
+          row
+          id={IDS.avpu}
+          sx={{
+            display: "flex",
+            flexWrap: "nowrap",
+            alignItems: "center",
+            columnGap: { xs: 1, sm: 2 },
+            overflowX: "auto",
+            width: "100%",
+            minWidth: 0,
+          }}
+        >
           {AVPU_OPTIONS.map((option) => (
             <FormControlLabel
               key={option.value}
               sx={{
                 m: 0,
                 mr: 0.75,
+                flexShrink: 0,
                 "& .MuiFormControlLabel-label": {
-                  fontSize: "0.8125rem",
+                  fontSize: "0.9375rem",
                   color: "#17365F",
                 },
               }}
@@ -306,7 +324,9 @@ export default function VitalsSection() {
                 />
               }
               label={
-                <Typography sx={{ fontSize: "0.8125rem" }}>
+                <Typography
+                  sx={{ fontSize: "0.9375rem", whiteSpace: "nowrap" }}
+                >
                   {option.label}
                 </Typography>
               }

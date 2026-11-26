@@ -111,55 +111,72 @@ export default function ClinicalDetailsSection({
           minWidth: 0,
         }}
       >
-        <Typography
-          id="clinical-facility-heading"
-          component="h3"
-          sx={{
-            mb: 1.25,
-            color: "#1755C9",
-            fontSize: "1rem",
-            fontWeight: 700,
-            textTransform: "uppercase",
-            letterSpacing: "0.015em",
-          }}
-        >
-          Hospital / Facility Visit Details
-        </Typography>
-
-        {/* Matches the blue switch treatment header without changing the clinical card. */}
+        {/* Heading on the left, compact toggle question and switch on the right. */}
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "flex-start", md: "center" },
             justifyContent: "space-between",
-            gap: 1.25,
-            px: 1.25,
-            py: 0.5,
-            bgcolor: "#DEEBFB",
-            borderRadius: "12px",
-            maxWidth: "100%",
+            columnGap: 2,
+            rowGap: 1,
             mb: clinical.hospitalVisitAvailable ? 1.5 : 0,
+            minWidth: 0,
           }}
         >
           <Typography
+            id="clinical-facility-heading"
+            component="h3"
             sx={{
-              color: "#173B69",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              lineHeight: 1.4,
+              m: 0,
+              color: "#1755C9",
+              fontSize: "1rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.015em",
             }}
           >
-            Is hospital visit details available?
+            Hospital / Facility Visit Details
           </Typography>
-          <ToggleSwitch
-            id={IDS.hospitalVisitAvailable}
-            checked={clinical.hospitalVisitAvailable}
-            disabled={readOnly}
-            ariaLabel="Is hospital visit details available?"
-            onChange={(hospitalVisitAvailable) =>
-              update({ section: "clinical", patch: { hospitalVisitAvailable } })
-            }
-          />
+
+          <Box
+            sx={{
+              display: "inline-flex",
+              flexShrink: { xs: 1, md: 0 },
+              minWidth: 0,
+              alignItems: "center",
+              justifyContent: "flex-start",
+              gap: 1,
+              px: 1.25,
+              py: 0.5,
+              bgcolor: "#DEEBFB",
+              borderRadius: "12px",
+              maxWidth: "100%",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "#173B69",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                lineHeight: 1.4,
+              }}
+            >
+              Is hospital visit details available?
+            </Typography>
+            <ToggleSwitch
+              id={IDS.hospitalVisitAvailable}
+              checked={clinical.hospitalVisitAvailable}
+              disabled={readOnly}
+              ariaLabel="Is hospital visit details available?"
+              onChange={(hospitalVisitAvailable) =>
+                update({
+                  section: "clinical",
+                  patch: { hospitalVisitAvailable },
+                })
+              }
+            />
+          </Box>
         </Box>
 
         {clinical.hospitalVisitAvailable && (

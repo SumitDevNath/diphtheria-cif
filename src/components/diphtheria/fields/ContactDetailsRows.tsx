@@ -46,7 +46,7 @@ export default function ContactDetailsRows() {
               gridTemplateColumns: {
                 xs: "minmax(0, 1fr)",
                 sm: "repeat(2, minmax(0, 1fr))",
-                lg: "repeat(4, minmax(0, 1fr))",
+                lg: "minmax(0, 1.2fr) minmax(90px, 0.55fr) minmax(0, 2fr) minmax(125px, 0.9fr)",
               },
               gap: 1.5,
               alignItems: "start",
@@ -113,7 +113,7 @@ export default function ContactDetailsRows() {
           </Box>
         ))}
       </Box>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1.25 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 1.25 }}>
         <Button
           type="button"
           size="small"

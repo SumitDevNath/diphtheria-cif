@@ -29,15 +29,11 @@ import type {
 import CaseIdentificationSection from "./sections/CaseIdentificationSection";
 import ClinicalDetailsSection from "./sections/ClinicalDetailsSection";
 
-import TreatmentInformationSection, {
-  AntibioticTherapySwitch,
-} from "./sections/TreatmentInformationSection";
+import TreatmentInformationSection from "./sections/TreatmentInformationSection";
 
 import VitalsSection from "./sections/VitalsSection";
 
-import VaccinationHistorySection, {
-  VaccinationAvailabilitySwitch,
-} from "./sections/VaccinationHistorySection";
+import VaccinationHistorySection from "./sections/VaccinationHistorySection";
 
 import type { FacilityOption, FormSectionKey } from "./types/diphtheria.types";
 
@@ -55,7 +51,7 @@ import {
   type TravelHistoryValidator,
 } from "./validation/travel.integration.validation";
 
-import { VACCINATION_VALIDATION_RULES } from "./validation/vaccination.validation";
+// Vaccination inputs and validation are owned by the existing shared NDSS module.
 
 import { VITALS_VALIDATION_RULES } from "./validation/vitals.validation";
 
@@ -177,7 +173,6 @@ export default function DiphtheriaInvestigationForm({
       ...VITALS_VALIDATION_RULES,
       ...BACKGROUND_VALIDATION_RULES,
       travelRule,
-      ...VACCINATION_VALIDATION_RULES,
       ...CLINICAL_VALIDATION_RULES,
       ...TREATMENT_VALIDATION_RULES,
       ...(validationRules ?? []),
@@ -227,13 +222,7 @@ export default function DiphtheriaInvestigationForm({
               title={title}
               number={number}
               rightContent={
-                id === "vaccination" ? (
-                  <VaccinationAvailabilitySwitch />
-                ) : id === "clinical" ? (
-                  <ClinicalOnsetHeaderField />
-                ) : id === "treatment" ? (
-                  <AntibioticTherapySwitch />
-                ) : undefined
+                id === "clinical" ? <ClinicalOnsetHeaderField /> : undefined
               }
             >
               {id === "identification" ? (

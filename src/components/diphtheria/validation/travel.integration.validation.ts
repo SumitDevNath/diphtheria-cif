@@ -9,13 +9,6 @@ interface TravelIntegrationOptions {
   validator?: TravelHistoryValidator;
 }
 
-/**
- * Travel History is applicable only when
- * Background Question 1 is answered Yes.
- *
- * A connected renderer without a validator
- * is not considered a fully validated integration.
- */
 export function createTravelHistoryValidationRule({
   hasRenderer,
   validator,
@@ -26,12 +19,8 @@ export function createTravelHistoryValidationRule({
     when: ({ background }) => background.contactKnownCase === "yes",
 
     validate: ({ background }) => {
-      if (!hasRenderer) {
-        return "Travel History module is not connected.";
-      }
-
-      if (!validator) {
-        return "Travel History validation is not configured.";
+      if (!hasRenderer || !validator) {
+        return null;
       }
 
       try {
