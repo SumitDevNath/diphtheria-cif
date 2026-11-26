@@ -94,18 +94,18 @@ export const REQUIRED_FIELDS = {
       given: true, // required only when DAT information is available
       notGivenReason: false,
       sensitivityTestDone: false, // toggle
-      testResult: false,
+      testResult: true,
       preTreatmentGiven: false, // toggle
-      preTreatments: false,
-      otherPreTreatment: false,
+      preTreatments: true,
+      otherPreTreatment: true,
       manufacturer: false,
       batchLot: false,
       administrationDate: false,
       administrationMode: false,
       doseUnits: false,
       sideEffectsOccurred: false, // toggle
-      sideEffects: false,
-      otherSideEffect: false,
+      sideEffects: true,
+      otherSideEffect: true,
       infusionContinued: false, // Yes/No question
     },
   },

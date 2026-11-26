@@ -452,9 +452,10 @@ export default function DATAntitoxinSection() {
           <Typography
             component="h3"
             sx={{
-              fontSize: "0.875rem",
+              color: t.ink,
+              fontSize: "1rem",
               fontWeight: 700,
-              textTransform: "uppercase",
+              lineHeight: 1.4,
             }}
           >
             Diphtheria Antitoxin (DAT)
@@ -627,7 +628,7 @@ export default function DATAntitoxinSection() {
                           >
                             <MultiChoice<DATPreTreatment>
                               id={IDS.preTreatments}
-                              label="Pre-treatment(s) (optional)"
+                              label="Select at least one pre-treatment"
                               options={DAT_PRETREATMENT_OPTIONS}
                               selected={dat.preTreatments}
                               onChange={(preTreatments) =>
@@ -744,7 +745,7 @@ export default function DATAntitoxinSection() {
                     >
                       <MultiChoice<DATSideEffect>
                         id={IDS.sideEffects}
-                        label="Side effect(s) (optional)"
+                        label="Select at least one side effect"
                         options={DAT_SIDE_EFFECT_OPTIONS}
                         selected={dat.sideEffects}
                         onChange={(sideEffects) => change({ sideEffects })}
