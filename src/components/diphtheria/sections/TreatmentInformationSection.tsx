@@ -204,7 +204,7 @@ export default function TreatmentInformationSection() {
             component="h3"
             sx={{
               ml: 1,
-              color: "#1755C9",
+              // color: "#1755C9",
               fontSize: "0.875rem",
               fontWeight: 700,
               textTransform: "uppercase",

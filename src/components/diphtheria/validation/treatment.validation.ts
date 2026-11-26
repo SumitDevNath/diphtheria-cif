@@ -22,6 +22,7 @@ import type {
   FormFieldErrors,
 } from "../types/diphtheria.types";
 import { createInitialDATInformation } from "../constants/form.constants";
+import { isDATInformationAvailable } from "../utils/dat.utils";
 
 import type { ValidationRule } from "./form.validation";
 
@@ -217,6 +218,7 @@ export const TREATMENT_VALIDATION_RULES: readonly ValidationRule[] = [
     validateFields: ({ treatment }) => validateRows(treatment.antibioticRows),
   },
   {
+    when: ({ treatment }) => isDATInformationAvailable(treatment.dat),
     validateFields: ({ treatment }) => validateDAT(treatment.dat),
   },
 ];

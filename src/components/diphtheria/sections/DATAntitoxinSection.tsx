@@ -24,6 +24,7 @@ import {
   DAT_TEST_RESULTS,
 } from "../constants/treatment.constants";
 import { createInitialDATInformation } from "../constants/form.constants";
+import { isDATInformationAvailable } from "../utils/dat.utils";
 import { useDiphtheriaForm } from "../context/DiphtheriaFormContext";
 import { YesNoField } from "../fields/ChoiceField";
 import DateField from "../fields/DateField";
@@ -108,7 +109,7 @@ function Question({ number, variant = "stacked", children }: QuestionProps) {
         ...rowPaddingSx,
         display: "flex",
         alignItems: "flex-start",
-        gap: 0.5,
+        gap: 0.75,
         minWidth: 0,
       }}
     >
@@ -117,7 +118,7 @@ function Question({ number, variant = "stacked", children }: QuestionProps) {
         aria-hidden
         sx={{
           flexShrink: 0,
-          width: "auto",
+          width: 20,
           mt: variant === "inline" ? "10px" : variant === "choice" ? "6px" : 0,
           color: t.ink,
           fontSize: "0.875rem",
@@ -359,6 +360,7 @@ export default function DATAntitoxinSection() {
 
   // Existing saved investigations may predate the new DAT section.
   const dat = data.treatment.dat ?? createInitialDATInformation();
+  const datInformationAvailable = isDATInformationAvailable(dat);
 
   const change = (patch: Partial<DATInformation>) => {
     update({
@@ -438,7 +440,9 @@ export default function DATAntitoxinSection() {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.25,
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1.5,
             px: { xs: 2, sm: 2.5 },
             py: 1.5,
             bgcolor: t.tint,
@@ -448,300 +452,340 @@ export default function DATAntitoxinSection() {
           <Typography
             component="h3"
             sx={{
-              color: t.ink,
-              fontSize: "1rem",
+              fontSize: "0.875rem",
               fontWeight: 700,
-              lineHeight: 1.4,
+              textTransform: "uppercase",
             }}
           >
             Diphtheria Antitoxin (DAT)
           </Typography>
-        </Box>
 
-        {/* Q1: DAT treatment given? */}
-        <Question number={1} variant="choice">
+          {/* Independent DAT availability toggle, matching the antibiotic switch. */}
           <Box
             sx={{
               display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              alignItems: "flex-start",
-              flexWrap: "wrap",
-              columnGap: 2.5,
-              rowGap: 1.5,
-              minWidth: 0,
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1.25,
+              px: 1.25,
+              py: 0.5,
+              bgcolor: "#DEEBFB",
+              borderRadius: "12px",
+              maxWidth: "100%",
             }}
           >
-            <YesNoField
-              id={IDS.given}
-              label="DAT treatment given?"
-              value={dat.given}
-              onChange={(given) => change({ given })}
-              onBlur={() => markTouched(IDS.given)}
-              error={fieldError(IDS.given)}
-              readOnly={readOnly}
-              required={REQUIRED.given}
-              inline
+            <Typography
+              sx={{
+                color: "#173B69",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                lineHeight: 1.4,
+              }}
+            >
+              Diphtheria Antitoxin (DAT) information available?
+            </Typography>
+            <ToggleSwitch
+              id={IDS.informationAvailable}
+              checked={datInformationAvailable}
+              disabled={readOnly}
+              ariaLabel="Diphtheria Antitoxin (DAT) information available?"
+              onChange={(informationAvailable) =>
+                change({ informationAvailable })
+              }
             />
+          </Box>
+        </Box>
 
-            {/* Restore the previous inline reason + dropdown layout only for No. */}
-            {dat.given === "no" && (
+        <Collapse in={datInformationAvailable} unmountOnExit>
+          <Box sx={{ minWidth: 0 }}>
+            {/* Q1: DAT treatment given? */}
+            <Question number={1} variant="choice">
               <Box
                 sx={{
                   display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
+                  flexDirection: { xs: "column", md: "row" },
                   alignItems: "flex-start",
-                  gap: 1.5,
-                  flex: { md: "0 1 45%" },
-                  minWidth: { xs: 0, md: 330 },
-                  width: { xs: "100%", md: "auto" },
+                  flexWrap: "wrap",
+                  columnGap: 2.5,
+                  rowGap: 1.5,
+                  minWidth: 0,
                 }}
               >
-                <Typography
-                  component="label"
-                  htmlFor={IDS.notGivenReason}
-                  sx={{
-                    ...labelSx,
-                    height: 40,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.25,
-                    flexShrink: 0,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Why DAT was not given
-                  {REQUIRED.notGivenReason && <RequiredMark />}
-                </Typography>
-
-                <Box
-                  sx={{
-                    flex: 1,
-                    minWidth: 150,
-                    // Only hide this SelectField's duplicate label, not its error.
-                    "& .MuiFormLabel-root": { display: "none" },
-                  }}
-                >
-                  <SelectField
-                    id={IDS.notGivenReason}
-                    label="Why DAT was not given"
-                    placeholder="Select reason"
-                    value={dat.notGivenReason}
-                    options={DAT_NOT_GIVEN_REASONS}
-                    onChange={(notGivenReason) => change({ notGivenReason })}
-                    onBlur={() => markTouched(IDS.notGivenReason)}
-                    error={fieldError(IDS.notGivenReason)}
-                    required={REQUIRED.notGivenReason}
-                    readOnly={readOnly}
-                  />
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </Question>
-
-        {/* Q2 – Q7: only when DAT was given */}
-        <Collapse in={dat.given === "yes"} unmountOnExit>
-          <Box sx={{ borderTop: `1px solid ${t.divider}` }}>
-            <Stack divider={<Divider sx={{ borderColor: t.divider }} />}>
-              {/* Q2: Sensitivity test */}
-              <Box sx={rowPaddingSx}>
-                <SwitchCard
-                  id={IDS.sensitivityTestDone}
-                  title="2. Sensitivity test done?"
-                  checked={dat.sensitivityTestDone}
-                  onChange={(sensitivityTestDone) =>
-                    change({ sensitivityTestDone })
-                  }
-                  disabled={readOnly}
-                >
-                  <Box sx={{ maxWidth: 420, minWidth: 0 }}>
-                    <SelectField
-                      id={IDS.testResult}
-                      label="Test results"
-                      placeholder="Select test result"
-                      value={dat.testResult}
-                      options={DAT_TEST_RESULTS}
-                      onChange={(testResult) => change({ testResult })}
-                      onBlur={() => markTouched(IDS.testResult)}
-                      error={fieldError(IDS.testResult)}
-                      required={REQUIRED.testResult}
-                      readOnly={readOnly}
-                    />
-                  </Box>
-
-                  <Collapse
-                    in={dat.testResult === "hypersensitive"}
-                    unmountOnExit
-                  >
-                    <FollowUp>
-                      <ToggleRow
-                        id={IDS.preTreatmentGiven}
-                        title="Pre-treatment given?"
-                        checked={dat.preTreatmentGiven}
-                        onChange={(preTreatmentGiven) =>
-                          change({ preTreatmentGiven })
-                        }
-                        disabled={readOnly}
-                      >
-                        <MultiChoice<DATPreTreatment>
-                          id={IDS.preTreatments}
-                          label="Select at least one pre-treatment"
-                          options={DAT_PRETREATMENT_OPTIONS}
-                          selected={dat.preTreatments}
-                          onChange={(preTreatments) =>
-                            change({ preTreatments })
-                          }
-                          error={fieldError(IDS.preTreatments)}
-                          required={REQUIRED.preTreatments}
-                          disabled={readOnly}
-                        />
-                        {dat.preTreatments.includes("other") && (
-                          <Box sx={{ mt: 1.5, maxWidth: 480 }}>
-                            {textField(
-                              IDS.otherPreTreatment,
-                              "Other pre-treatment (specify)",
-                              dat.otherPreTreatment,
-                              (otherPreTreatment) =>
-                                change({ otherPreTreatment }),
-                              REQUIRED.otherPreTreatment,
-                              { placeholder: "Specify pre-treatment" },
-                            )}
-                          </Box>
-                        )}
-                      </ToggleRow>
-                    </FollowUp>
-                  </Collapse>
-                </SwitchCard>
-              </Box>
-
-              {/* Q3: Manufacturer and dependent batch */}
-              <Question number={3}>
-                <Box sx={twoColumnsSx}>
-                  {textField(
-                    IDS.manufacturer,
-                    "Manufacturer of DAT",
-                    dat.manufacturer,
-                    (manufacturer) => change({ manufacturer }),
-                    REQUIRED.manufacturer,
-                    { placeholder: "Enter manufacturer" },
-                  )}
-                  {dat.manufacturer.trim() &&
-                    textField(
-                      IDS.batchLot,
-                      "Batch/Lot No. of DAT",
-                      dat.batchLot,
-                      (batchLot) => change({ batchLot }),
-                      REQUIRED.batchLot,
-                      { placeholder: "Enter batch / lot number" },
-                    )}
-                </Box>
-              </Question>
-
-              {/* Q4: Date and mode */}
-              <Question number={4}>
-                <Box sx={twoColumnsSx}>
-                  <DateField
-                    id={IDS.administrationDate}
-                    label="Date of DAT administration (DD/MM/YY)"
-                    displayFormat="DD/MM/YY"
-                    value={dat.administrationDate}
-                    onChange={(administrationDate) =>
-                      change({ administrationDate })
-                    }
-                    onBlur={() => markTouched(IDS.administrationDate)}
-                    error={fieldError(IDS.administrationDate)}
-                    required={REQUIRED.administrationDate}
-                    readOnly={readOnly}
-                    noFuture
-                  />
-                  <SelectField
-                    id={IDS.administrationMode}
-                    label="Mode of administration"
-                    placeholder="Select IV or IM"
-                    value={dat.administrationMode}
-                    options={DAT_ADMINISTRATION_MODES}
-                    onChange={(administrationMode) =>
-                      change({ administrationMode })
-                    }
-                    onBlur={() => markTouched(IDS.administrationMode)}
-                    error={fieldError(IDS.administrationMode)}
-                    required={REQUIRED.administrationMode}
-                    readOnly={readOnly}
-                  />
-                </Box>
-              </Question>
-
-              {/* Q5: Dose */}
-              <Question number={5}>
-                <Box sx={{ maxWidth: 420, minWidth: 0 }}>
-                  {textField(
-                    IDS.doseUnits,
-                    "Dose administered (units)",
-                    dat.doseUnits,
-                    (doseUnits) => change({ doseUnits }),
-                    REQUIRED.doseUnits,
-                    {
-                      placeholder: "Enter dose",
-                      inputMode: "decimal",
-                      adornment: "units",
-                    },
-                  )}
-                </Box>
-              </Question>
-
-              {/* Q6: Side effects */}
-              <Box sx={rowPaddingSx}>
-                <SwitchCard
-                  id={IDS.sideEffectsOccurred}
-                  title="6. Side effects of DAT?"
-                  checked={dat.sideEffectsOccurred}
-                  onChange={(sideEffectsOccurred) =>
-                    change({ sideEffectsOccurred })
-                  }
-                  disabled={readOnly}
-                >
-                  <MultiChoice<DATSideEffect>
-                    id={IDS.sideEffects}
-                    label="Select at least one side effect"
-                    options={DAT_SIDE_EFFECT_OPTIONS}
-                    selected={dat.sideEffects}
-                    onChange={(sideEffects) => change({ sideEffects })}
-                    error={fieldError(IDS.sideEffects)}
-                    required={REQUIRED.sideEffects}
-                    disabled={readOnly}
-                  />
-                  {dat.sideEffects.includes("other") && (
-                    <Box sx={{ maxWidth: 480, mt: 1.5 }}>
-                      {textField(
-                        IDS.otherSideEffect,
-                        "Other side effect (describe)",
-                        dat.otherSideEffect,
-                        (otherSideEffect) => change({ otherSideEffect }),
-                        REQUIRED.otherSideEffect,
-                        { placeholder: "Describe the side effect" },
-                      )}
-                    </Box>
-                  )}
-                </SwitchCard>
-              </Box>
-
-              {/* Q7: Infusion continued? */}
-              <Question number={7} variant="choice">
                 <YesNoField
-                  id={IDS.infusionContinued}
-                  label="DAT infusion continued?"
-                  value={dat.infusionContinued}
-                  onChange={(infusionContinued) =>
-                    change({ infusionContinued })
-                  }
-                  onBlur={() => markTouched(IDS.infusionContinued)}
-                  error={fieldError(IDS.infusionContinued)}
-                  required={REQUIRED.infusionContinued}
+                  id={IDS.given}
+                  label="DAT treatment given?"
+                  value={dat.given}
+                  onChange={(given) => change({ given })}
+                  onBlur={() => markTouched(IDS.given)}
+                  error={fieldError(IDS.given)}
                   readOnly={readOnly}
+                  required={REQUIRED.given}
                   inline
                 />
-              </Question>
-            </Stack>
+
+                {/* Restore the previous inline reason + dropdown layout only for No. */}
+                {dat.given === "no" && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: "flex-start",
+                      gap: 1.5,
+                      flex: { md: "0 1 45%" },
+                      minWidth: { xs: 0, md: 330 },
+                      width: { xs: "100%", md: "auto" },
+                    }}
+                  >
+                    <Typography
+                      component="label"
+                      htmlFor={IDS.notGivenReason}
+                      sx={{
+                        ...labelSx,
+                        height: 40,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.25,
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Why DAT was not given
+                      {REQUIRED.notGivenReason && <RequiredMark />}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        flex: 1,
+                        minWidth: 150,
+                        // Only hide this SelectField's duplicate label, not its error.
+                        "& .MuiFormLabel-root": { display: "none" },
+                      }}
+                    >
+                      <SelectField
+                        id={IDS.notGivenReason}
+                        label="Why DAT was not given"
+                        placeholder="Select reason"
+                        value={dat.notGivenReason}
+                        options={DAT_NOT_GIVEN_REASONS}
+                        onChange={(notGivenReason) =>
+                          change({ notGivenReason })
+                        }
+                        onBlur={() => markTouched(IDS.notGivenReason)}
+                        error={fieldError(IDS.notGivenReason)}
+                        required={REQUIRED.notGivenReason}
+                        readOnly={readOnly}
+                      />
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            </Question>
+
+            {/* Q2 – Q7: only when DAT was given */}
+            <Collapse in={dat.given === "yes"} unmountOnExit>
+              <Box sx={{ borderTop: `1px solid ${t.divider}` }}>
+                <Stack divider={<Divider sx={{ borderColor: t.divider }} />}>
+                  {/* Q2: Sensitivity test */}
+                  <Box sx={rowPaddingSx}>
+                    <SwitchCard
+                      id={IDS.sensitivityTestDone}
+                      title="2. Sensitivity test done?"
+                      checked={dat.sensitivityTestDone}
+                      onChange={(sensitivityTestDone) =>
+                        change({ sensitivityTestDone })
+                      }
+                      disabled={readOnly}
+                    >
+                      <Box sx={{ maxWidth: 420, minWidth: 0 }}>
+                        <SelectField
+                          id={IDS.testResult}
+                          label="Test results"
+                          placeholder="Select test result"
+                          value={dat.testResult}
+                          options={DAT_TEST_RESULTS}
+                          onChange={(testResult) => change({ testResult })}
+                          onBlur={() => markTouched(IDS.testResult)}
+                          error={fieldError(IDS.testResult)}
+                          required={REQUIRED.testResult}
+                          readOnly={readOnly}
+                        />
+                      </Box>
+
+                      <Collapse
+                        in={dat.testResult === "hypersensitive"}
+                        unmountOnExit
+                      >
+                        <FollowUp>
+                          <ToggleRow
+                            id={IDS.preTreatmentGiven}
+                            title="Pre-treatment given?"
+                            checked={dat.preTreatmentGiven}
+                            onChange={(preTreatmentGiven) =>
+                              change({ preTreatmentGiven })
+                            }
+                            disabled={readOnly}
+                          >
+                            <MultiChoice<DATPreTreatment>
+                              id={IDS.preTreatments}
+                              label="Pre-treatment(s) (optional)"
+                              options={DAT_PRETREATMENT_OPTIONS}
+                              selected={dat.preTreatments}
+                              onChange={(preTreatments) =>
+                                change({ preTreatments })
+                              }
+                              error={fieldError(IDS.preTreatments)}
+                              required={REQUIRED.preTreatments}
+                              disabled={readOnly}
+                            />
+                            {dat.preTreatments.includes("other") && (
+                              <Box sx={{ mt: 1.5, maxWidth: 480 }}>
+                                {textField(
+                                  IDS.otherPreTreatment,
+                                  "Other pre-treatment (specify)",
+                                  dat.otherPreTreatment,
+                                  (otherPreTreatment) =>
+                                    change({ otherPreTreatment }),
+                                  REQUIRED.otherPreTreatment,
+                                  { placeholder: "Specify pre-treatment" },
+                                )}
+                              </Box>
+                            )}
+                          </ToggleRow>
+                        </FollowUp>
+                      </Collapse>
+                    </SwitchCard>
+                  </Box>
+
+                  {/* Q3: Manufacturer and dependent batch */}
+                  <Question number={3}>
+                    <Box sx={twoColumnsSx}>
+                      {textField(
+                        IDS.manufacturer,
+                        "Manufacturer of DAT",
+                        dat.manufacturer,
+                        (manufacturer) => change({ manufacturer }),
+                        REQUIRED.manufacturer,
+                        { placeholder: "Enter manufacturer" },
+                      )}
+                      {dat.manufacturer.trim() &&
+                        textField(
+                          IDS.batchLot,
+                          "Batch/Lot No. of DAT",
+                          dat.batchLot,
+                          (batchLot) => change({ batchLot }),
+                          REQUIRED.batchLot,
+                          { placeholder: "Enter batch / lot number" },
+                        )}
+                    </Box>
+                  </Question>
+
+                  {/* Q4: Date and mode */}
+                  <Question number={4}>
+                    <Box sx={twoColumnsSx}>
+                      <DateField
+                        id={IDS.administrationDate}
+                        label="Date of DAT administration (DD/MM/YY)"
+                        displayFormat="DD/MM/YY"
+                        value={dat.administrationDate}
+                        onChange={(administrationDate) =>
+                          change({ administrationDate })
+                        }
+                        onBlur={() => markTouched(IDS.administrationDate)}
+                        error={fieldError(IDS.administrationDate)}
+                        required={REQUIRED.administrationDate}
+                        readOnly={readOnly}
+                        noFuture
+                      />
+                      <SelectField
+                        id={IDS.administrationMode}
+                        label="Mode of administration"
+                        placeholder="Select IV or IM"
+                        value={dat.administrationMode}
+                        options={DAT_ADMINISTRATION_MODES}
+                        onChange={(administrationMode) =>
+                          change({ administrationMode })
+                        }
+                        onBlur={() => markTouched(IDS.administrationMode)}
+                        error={fieldError(IDS.administrationMode)}
+                        required={REQUIRED.administrationMode}
+                        readOnly={readOnly}
+                      />
+                    </Box>
+                  </Question>
+
+                  {/* Q5: Dose */}
+                  <Question number={5}>
+                    <Box sx={{ maxWidth: 420, minWidth: 0 }}>
+                      {textField(
+                        IDS.doseUnits,
+                        "Dose administered (units)",
+                        dat.doseUnits,
+                        (doseUnits) => change({ doseUnits }),
+                        REQUIRED.doseUnits,
+                        {
+                          placeholder: "Enter dose",
+                          inputMode: "decimal",
+                          adornment: "units",
+                        },
+                      )}
+                    </Box>
+                  </Question>
+
+                  {/* Q6: Side effects */}
+                  <Box sx={rowPaddingSx}>
+                    <SwitchCard
+                      id={IDS.sideEffectsOccurred}
+                      title="6. Side effects of DAT?"
+                      checked={dat.sideEffectsOccurred}
+                      onChange={(sideEffectsOccurred) =>
+                        change({ sideEffectsOccurred })
+                      }
+                      disabled={readOnly}
+                    >
+                      <MultiChoice<DATSideEffect>
+                        id={IDS.sideEffects}
+                        label="Side effect(s) (optional)"
+                        options={DAT_SIDE_EFFECT_OPTIONS}
+                        selected={dat.sideEffects}
+                        onChange={(sideEffects) => change({ sideEffects })}
+                        error={fieldError(IDS.sideEffects)}
+                        required={REQUIRED.sideEffects}
+                        disabled={readOnly}
+                      />
+                      {dat.sideEffects.includes("other") && (
+                        <Box sx={{ maxWidth: 480, mt: 1.5 }}>
+                          {textField(
+                            IDS.otherSideEffect,
+                            "Other side effect (describe)",
+                            dat.otherSideEffect,
+                            (otherSideEffect) => change({ otherSideEffect }),
+                            REQUIRED.otherSideEffect,
+                            { placeholder: "Describe the side effect" },
+                          )}
+                        </Box>
+                      )}
+                    </SwitchCard>
+                  </Box>
+
+                  {/* Q7: Infusion continued? */}
+                  <Question number={7} variant="choice">
+                    <YesNoField
+                      id={IDS.infusionContinued}
+                      label="DAT infusion continued?"
+                      value={dat.infusionContinued}
+                      onChange={(infusionContinued) =>
+                        change({ infusionContinued })
+                      }
+                      onBlur={() => markTouched(IDS.infusionContinued)}
+                      error={fieldError(IDS.infusionContinued)}
+                      required={REQUIRED.infusionContinued}
+                      readOnly={readOnly}
+                      inline
+                    />
+                  </Question>
+                </Stack>
+              </Box>
+            </Collapse>
           </Box>
         </Collapse>
       </Paper>

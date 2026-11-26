@@ -118,6 +118,7 @@ export type DATSideEffect = "anaphylaxis" | "febrile_reaction" | "other";
 export type DATAdministrationMode = "iv" | "im";
 
 export interface DATInformation {
+  informationAvailable: boolean; // DAT subsection toggle, initially ON
   given: YesNo;
   notGivenReason: DATNotGivenReason | null;
   sensitivityTestDone: boolean;

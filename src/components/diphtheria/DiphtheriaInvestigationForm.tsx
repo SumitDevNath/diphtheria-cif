@@ -117,10 +117,13 @@ function TravelHistorySlot({
           variant="body2"
           sx={{
             color: "#718096",
-            fontSize: "0.78rem",
+            fontSize: "1rem",
           }}
         >
           The external Travel History module has not yet been integrated.
+          However, keep in mind that the Travel History field is required within
+          14 days of symptom onset for all cases. Please ensure that this
+          information is considered and recorded in the system
         </Typography>
       )}
 

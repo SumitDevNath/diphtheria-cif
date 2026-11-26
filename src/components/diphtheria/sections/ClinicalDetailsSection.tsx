@@ -129,7 +129,6 @@ export default function ClinicalDetailsSection({
             component="h3"
             sx={{
               m: 0,
-              color: "#1755C9",
               fontSize: "1rem",
               fontWeight: 700,
               textTransform: "uppercase",

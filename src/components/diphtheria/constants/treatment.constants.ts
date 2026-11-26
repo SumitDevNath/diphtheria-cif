@@ -47,6 +47,7 @@ export function antibioticFieldId(
 export const TREATMENT_REQUIRED = REQUIRED_FIELDS.treatment;
 
 export const DAT_FIELD_IDS = {
+  informationAvailable: "treatment-dat-informationAvailable",
   given: "treatment-dat-given",
   notGivenReason: "treatment-dat-notGivenReason",
   sensitivityTestDone: "treatment-dat-sensitivityTestDone",

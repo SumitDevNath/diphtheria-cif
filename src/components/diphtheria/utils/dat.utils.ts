@@ -1,13 +1,33 @@
 import { createInitialDATInformation } from "../constants/form.constants";
 import type { DATInformation } from "../types/diphtheria.types";
 
-/** Clears only DAT answers that become hidden, never the antibiotic records. */
+/** Older saved DAT records may not contain the new availability flag. */
+export function isDATInformationAvailable(
+  value: DATInformation | undefined,
+): boolean {
+  if (!value) return false;
+  if (typeof value.informationAvailable === "boolean")
+    return value.informationAvailable;
+  return value.given === "yes" || value.given === "no";
+}
+
+/** Clears hidden DAT answers without touching the antibiotic records. */
 export function normalizeDATInformation(value: DATInformation): DATInformation {
-  const dat = { ...createInitialDATInformation(), ...value };
+  const available = isDATInformationAvailable(value);
+  const dat = {
+    ...createInitialDATInformation(),
+    ...value,
+    informationAvailable: available,
+  };
+
+  if (!available) {
+    return { ...createInitialDATInformation(), informationAvailable: false };
+  }
 
   if (dat.given !== "yes") {
     return {
       ...createInitialDATInformation(),
+      informationAvailable: true,
       given: dat.given,
       notGivenReason: dat.given === "no" ? dat.notGivenReason : null,
     };

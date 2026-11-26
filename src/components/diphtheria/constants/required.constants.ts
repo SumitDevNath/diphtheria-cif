@@ -90,22 +90,23 @@ export const REQUIRED_FIELDS = {
     startDate: false,
     endDate: false,
     dat: {
-      given: true, // Yes/No question (unselected at first)
-      notGivenReason: true,
+      informationAvailable: false, // optional section toggle
+      given: true, // required only when DAT information is available
+      notGivenReason: false,
       sensitivityTestDone: false, // toggle
-      testResult: true,
+      testResult: false,
       preTreatmentGiven: false, // toggle
-      preTreatments: true,
-      otherPreTreatment: true,
-      manufacturer: true,
-      batchLot: true,
-      administrationDate: true,
-      administrationMode: true,
-      doseUnits: true,
+      preTreatments: false,
+      otherPreTreatment: false,
+      manufacturer: false,
+      batchLot: false,
+      administrationDate: false,
+      administrationMode: false,
+      doseUnits: false,
       sideEffectsOccurred: false, // toggle
-      sideEffects: true,
-      otherSideEffect: true,
-      infusionContinued: true, // Yes/No question
+      sideEffects: false,
+      otherSideEffect: false,
+      infusionContinued: false, // Yes/No question
     },
   },
 } as const satisfies RequiredFieldsShape;

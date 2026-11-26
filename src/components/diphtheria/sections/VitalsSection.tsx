@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import {
   Box,
   Checkbox,
+  Collapse,
   FormControlLabel,
   FormGroup,
   InputAdornment,
@@ -21,22 +22,47 @@ import { NumberField, ValidatedField } from "../fields/ValidatedField";
 import type { AVPU } from "../types/diphtheria.types";
 import { convertTemperature } from "../utils/temperature.utils";
 
-const fieldCellSx = {
+/* -------------------------------------------------------------------------- */
+/* Design tokens (shared with DATAntitoxinSection)                            */
+/* -------------------------------------------------------------------------- */
+
+const t = {
+  ink: "#17365F",
+  muted: "#5B7391",
+  accent: "#1755C9",
+  accentSoft: "#E8F0FD",
+  surface: "#FFFFFF",
+  skipped: "#EEF3F9",
+  inputBorder: "#C9D9EF",
+} as const;
+
+/**
+ * Applied to every grid cell. Inputs share one height (42px) and one font
+ * size (0.875rem) with the DAT section. A cell marked data-skipped="true"
+ * (a "Not measured" vital) gets a tinted field so it reads as intentionally
+ * skipped rather than just empty.
+ */
+const cellSx = {
   minWidth: 0,
   width: "100%",
   "& .MuiOutlinedInput-root": {
-    minHeight: 40,
+    minHeight: 42,
     borderRadius: "6px",
-    bgcolor: "#FFFFFF",
+    bgcolor: t.surface,
   },
-  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C9D9EF" },
-  "& .MuiInputBase-input": { minWidth: 0, fontSize: "0.78rem" },
+  "& .MuiOutlinedInput-notchedOutline": { borderColor: t.inputBorder },
+  "& .MuiInputBase-input": { minWidth: 0, fontSize: "0.875rem" },
   "& .MuiInputAdornment-root .MuiTypography-root": {
-    color: "#5B708C",
-    fontSize: "0.7rem",
+    color: t.muted,
+    fontSize: "0.8125rem",
     whiteSpace: "nowrap",
   },
+  '&[data-skipped="true"] .MuiOutlinedInput-root': { bgcolor: t.skipped },
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/* "Not measured" checkbox                                                    */
+/* -------------------------------------------------------------------------- */
 
 interface NotMeasuredOptionProps {
   id: string;
@@ -55,10 +81,11 @@ function NotMeasuredOption({
     <FormControlLabel
       sx={{
         m: 0,
-        mt: 0.25,
+        mt: 0.5,
+        ml: -0.5, // pull the checkbox edge flush with the input's left edge
         "& .MuiFormControlLabel-label": {
-          fontSize: "0.75rem",
-          color: "#476181",
+          fontSize: "0.8125rem",
+          color: t.muted,
         },
       }}
       control={
@@ -75,6 +102,10 @@ function NotMeasuredOption({
     />
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Section                                                                    */
+/* -------------------------------------------------------------------------- */
 
 export default function VitalsSection() {
   const { data, update, fieldError, markTouched, readOnly } =
@@ -127,7 +158,11 @@ export default function VitalsSection() {
     const notMeasured = isSaturation && vitals.oxygenSaturationNotMeasured;
 
     return (
-      <Box key={key} sx={fieldCellSx}>
+      <Box
+        key={key}
+        sx={cellSx}
+        data-skipped={notMeasured ? "true" : undefined}
+      >
         <NumberField
           id={IDS[key]}
           label={config.label}
@@ -172,10 +207,11 @@ export default function VitalsSection() {
           sm: "repeat(2, minmax(0, 1fr))",
           md: "repeat(4, minmax(0, 1fr))",
         },
-        columnGap: { xs: 1.5, sm: 2, md: 2.5 },
-        rowGap: { xs: 1, sm: 1.5 },
-        px: { xs: 1.5, sm: 2 },
-        py: 2,
+        columnGap: { xs: 2, md: 2.5 },
+        rowGap: { xs: 2, md: 2.5 },
+        alignItems: "start",
+        px: { xs: 2, sm: 2.5 },
+        py: 2.5,
         width: "100%",
         minWidth: 0,
         boxSizing: "border-box",
@@ -185,7 +221,10 @@ export default function VitalsSection() {
       {renderNumericField("respiratoryRate")}
 
       {/* Temperature is Fahrenheit-only. */}
-      <Box sx={fieldCellSx}>
+      <Box
+        sx={cellSx}
+        data-skipped={vitals.temperatureNotMeasured ? "true" : undefined}
+      >
         <FieldLabel
           id={IDS.temperature}
           required={REQUIRED.temperature && !vitals.temperatureNotMeasured}
@@ -240,7 +279,10 @@ export default function VitalsSection() {
       </Box>
 
       {/* BP — label and placeholder do not include an example. */}
-      <Box sx={fieldCellSx}>
+      <Box
+        sx={cellSx}
+        data-skipped={vitals.bloodPressureNotMeasured ? "true" : undefined}
+      >
         <ValidatedField
           id={IDS.bloodPressure}
           label="Blood Pressure"
@@ -276,63 +318,68 @@ export default function VitalsSection() {
       {/* AVPU: multiple responses except Unresponsive, which is exclusive. */}
       <Box
         sx={{
-          ...fieldCellSx,
-          gridColumn: { xs: "1 / -1", sm: "1 / -1", md: "span 3" },
+          ...cellSx,
+          gridColumn: { xs: "1 / -1", md: "span 3" },
         }}
       >
         <FieldLabel id={IDS.avpu} required={REQUIRED.avpu}>
           AVPU
         </FieldLabel>
-        <FormGroup
-          row
-          id={IDS.avpu}
-          sx={{
-            display: "flex",
-            flexWrap: "nowrap",
-            alignItems: "center",
-            columnGap: { xs: 1, sm: 2 },
-            overflowX: "auto",
-            width: "100%",
-            minWidth: 0,
-          }}
-        >
-          {AVPU_OPTIONS.map((option) => (
-            <FormControlLabel
-              key={option.value}
-              sx={{
-                m: 0,
-                mr: 0.75,
-                flexShrink: 0,
-                "& .MuiFormControlLabel-label": {
-                  fontSize: "0.9375rem",
-                  color: "#17365F",
-                },
-              }}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={avpuValues.includes(option.value)}
-                  disabled={
-                    readOnly ||
-                    (avpuIsUnresponsive && option.value !== "unresponsive")
-                  }
-                  onBlur={() => markTouched(IDS.avpu)}
-                  onChange={(event) =>
-                    toggleAVPU(option.value, event.target.checked)
-                  }
-                  sx={{ p: 0.5 }}
-                />
-              }
-              label={
-                <Typography
-                  sx={{ fontSize: "0.9375rem", whiteSpace: "nowrap" }}
-                >
-                  {option.label}
-                </Typography>
-              }
-            />
-          ))}
+        <FormGroup row id={IDS.avpu} sx={{ gap: 1, minWidth: 0 }}>
+          {AVPU_OPTIONS.map((option) => {
+            const isSelected = avpuValues.includes(option.value);
+            const isLocked =
+              avpuIsUnresponsive && option.value !== "unresponsive";
+
+            return (
+              <FormControlLabel
+                key={option.value}
+                label={option.label}
+                sx={{
+                  m: 0,
+                  pl: 0.5,
+                  pr: 1.75,
+                  minHeight: 42, // same height as the text inputs beside it
+                  border: `1px solid ${isSelected ? t.accent : t.inputBorder}`,
+                  borderRadius: "8px",
+                  bgcolor: isSelected
+                    ? t.accentSoft
+                    : isLocked
+                      ? t.skipped
+                      : t.surface,
+                  opacity: isLocked ? 0.6 : 1,
+                  "&:has(.Mui-focusVisible)": {
+                    outline: `2px solid ${t.accent}`,
+                    outlineOffset: 2,
+                  },
+                  "& .MuiFormControlLabel-label": {
+                    color: t.ink,
+                    fontSize: "0.875rem",
+                    fontWeight: isSelected ? 600 : 400,
+                    whiteSpace: "nowrap",
+                  },
+                }}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={isSelected}
+                    disabled={readOnly || isLocked}
+                    onBlur={() => markTouched(IDS.avpu)}
+                    onChange={(event) =>
+                      toggleAVPU(option.value, event.target.checked)
+                    }
+                    sx={{ p: 0.5 }}
+                  />
+                }
+              />
+            );
+          })}
         </FormGroup>
+        <Collapse in={avpuIsUnresponsive} unmountOnExit>
+          <Typography sx={{ mt: 0.75, color: t.muted, fontSize: "0.8125rem" }}>
+            Unresponsive is exclusive. Clear it to choose other levels.
+          </Typography>
+        </Collapse>
         <FieldError id={IDS.avpu} message={fieldError(IDS.avpu)} />
       </Box>
     </Box>

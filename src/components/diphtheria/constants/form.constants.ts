@@ -21,7 +21,7 @@ export const SECTION_DEFINITIONS: ReadonlyArray<{
 }> = [
   {
     id: "identification",
-    title: "More Case Information",
+    title: "More Case Identification/ Demographic Details",
     number: null,
     phase: 3,
   },
@@ -121,6 +121,7 @@ export function createEmptyClinicalSelection(): ClinicalSelection {
 
 export function createInitialDATInformation(): DATInformation {
   return {
+    informationAvailable: true,
     given: null,
     notGivenReason: null,
     sensitivityTestDone: false,
